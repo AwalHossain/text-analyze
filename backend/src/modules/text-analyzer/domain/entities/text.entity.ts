@@ -119,9 +119,7 @@ export class TextAnalyzerEntity {
     // 2. Split by double newlines (including those with spaces between)
     const paragraphs = normalizedText.split(/\n\s*\n+/); // Added '+' quantifier
     // 3. Filter out empty paragraphs and return the count'
-    console.log(normalizedText, 'normalizedText', paragraphs);
 
-    console.log(paragraphs, 'paragraphs');
     return paragraphs.filter((p) => p.trim().length > 0).length;
   }
 
