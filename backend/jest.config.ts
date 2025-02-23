@@ -13,6 +13,7 @@ const config: Config = {
   moduleNameMapper: {
     '^@common/(.*)$': '<rootDir>/common/$1',
     '^@utils/(.*)$': '<rootDir>/common/utils/$1',
+    '^src/(.*)$': '<rootDir>/$1',
   },
   // Add these settings
   moduleDirectories: ['node_modules', 'src'],
