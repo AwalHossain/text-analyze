@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
@@ -12,9 +12,9 @@ export class CreateTextDto {
   // @MaxLength(10000)
   content: string;
 
-  @ApiProperty({ required: false })
-  @IsString()
-  @IsOptional()
-  @MaxLength(100)
-  userId?: string;
+  // @ApiProperty({ required: false })
+  // @IsString()
+  // @IsOptional()
+  // @MaxLength(100)
+  // userId?: string;
 }
