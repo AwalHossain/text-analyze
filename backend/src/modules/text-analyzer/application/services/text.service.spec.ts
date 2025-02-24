@@ -3,7 +3,6 @@ import { TextRepository } from '../../infrastructure/repositories/text.repositor
 import { TextAnalyzerService } from './text-analyer.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { TextStats } from '../dto/text-stats.dto';
-import { CreateTextDto } from '../dto/create-text.dto';
 
 describe('TextAnalyzerService', () => {
   let service: TextAnalyzerService;
@@ -42,10 +41,7 @@ describe('TextAnalyzerService', () => {
   describe('analyzeText', () => {
     const sampleText = 'The quick brown fox jumps over the lazy dog';
     const userId = 'test-user-id';
-    const createTextDto = {
-      content: sampleText,
-      userId,
-    };
+
     const expectedStats: TextStats = {
       wordCount: 9,
       characterCount: 35,
@@ -57,7 +53,7 @@ describe('TextAnalyzerService', () => {
     it('should return cached stats if available', async () => {
       mockCacheManager.get.mockResolvedValue(expectedStats);
 
-      const result = await service.analyzeText(createTextDto);
+      const result = await service.analyzeText(sampleText, userId);
 
       expect(result).toEqual(expectedStats);
       expect(mockCacheManager.get).toHaveBeenCalled();
@@ -77,7 +73,7 @@ describe('TextAnalyzerService', () => {
         _id: 'some-id',
       });
 
-      const result = await service.analyzeText(createTextDto);
+      const result = await service.analyzeText(sampleText, userId);
 
       expect(result).toBeDefined();
       expect(mockCacheManager.get).toHaveBeenCalled();
@@ -153,15 +149,12 @@ describe('TextAnalyzerService', () => {
 
     describe('error handling', () => {
       it('should handle repository errors gracefully', async () => {
-        const createTextDto: CreateTextDto = {
-          content: 'test',
-          userId: 'test-user-id',
-        };
+        mockCacheManager.get.mockResolvedValue(null);
 
         mockCacheManager.get.mockResolvedValue(null);
         mockTextRepository.analyzeText.mockRejectedValue(new Error('DB Error'));
 
-        const result = await service.analyzeText(createTextDto);
+        const result = await service.analyzeText(sampleText, userId);
 
         expect(result).toBeUndefined();
       });
