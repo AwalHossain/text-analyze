@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TextRepository } from '../../infrastructure/repositories/text.repository';
-import { CreateTextDto } from '../dto/create-text.dto';
 import { TextAnalyzerEntity } from '../../domain/entities/text.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject } from '@nestjs/common';
@@ -18,18 +17,21 @@ export class TextAnalyzerService {
   ) {}
 
   async analyzeText(
-    createTextDto: CreateTextDto,
+    content: string,
+    userId: string,
   ): Promise<TextStats | undefined> {
-    const content = TextUtils.normalizeContent(createTextDto.content);
-    const userId = createTextDto.userId as string;
-    const cacheKey = TextUtils.generateCacheKey(userId, content);
+    const normalizedContent = TextUtils.normalizeContent(content);
+    const cacheKey = TextUtils.generateCacheKey(userId, normalizedContent);
     try {
-      this.logger.log(
-        `Text analysis saved to database for user ${createTextDto.userId}`,
-      );
+      this.logger.log(`Text analysis saved to database for user ${userId}`);
       const cachedStats = await this.cacheManager.get<TextStats>(cacheKey);
       if (cachedStats) {
-        await this.textRepository.analyzeText(userId, content, cachedStats); // Use repository to save
+        const res = await this.textRepository.analyzeText(
+          userId,
+          content,
+          cachedStats,
+        ); // Use repository to save
+        console.log(res, 'res from analyze text');
 
         this.logger.log(`Cache hit for user ${userId}`);
 
@@ -47,7 +49,7 @@ export class TextAnalyzerService {
       return stats;
     } catch (dbError) {
       this.logger.error(
-        `Error saving text analysis to database for user ${createTextDto.userId}`,
+        `Error saving text analysis to database for user ${userId}`,
         dbError,
       );
       // Consider how you want to handle database errors.
@@ -178,6 +180,7 @@ export class TextAnalyzerService {
 
   async getAllAnalyzeByUserId(userId: string): Promise<Array<TextDocument>> {
     const allAnalyze = await this.textRepository.findAllByUserId(userId);
+    console.log(allAnalyze, 'allAnalyze for user `{userId}`', userId);
     this.logger.log(`All analyze for user ${userId}:`, allAnalyze);
     return allAnalyze;
   }
