@@ -6,7 +6,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
   // global prefix
   app.setGlobalPrefix('api');
 
@@ -17,13 +16,23 @@ async function bootstrap() {
     .setVersion('1.0')
     .addServer('http://localhost:3000/', 'LocalDevelopment')
     .addTag('text-analyzer')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT', // This name here is important for references
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api-docs', app, document);
   // use winston for logging
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER as string));
-
   // global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
@@ -41,7 +50,6 @@ async function bootstrap() {
   });
 
   await app.listen(process.env.PORT || 3000, () => {
-    console.log(`Server is running on port ${process.env.PORT}`);
     Logger.log(`Server is running on port ${process.env.PORT}`);
   });
 }
