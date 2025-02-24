@@ -7,12 +7,16 @@ import {
   HttpStatus,
   Logger,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TextStatsDto } from '../../application/dto/text-stats.dto';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
+import { User } from 'src/modules/auth/decorators/user.decorator';
 
 @ApiTags('Text Analyzer')
 @Controller()
+@UseGuards(JwtAuthGuard)
 export class TextAnalyzerController {
   private readonly logger = new Logger(TextAnalyzerController.name);
   constructor(private readonly textAnalerService: TextAnalyzerService) {}
@@ -25,8 +29,8 @@ export class TextAnalyzerController {
     description: 'The text has been successfully created and analyzed.',
     type: TextStatsDto,
   })
-  async analyzeText(@Body() createTextDto: CreateTextDto) {
-    const savedText = await this.textAnalerService.analyzeText(createTextDto);
+  async analyzeText(@Body() content: string, @User('userId') userId: string) {
+    const savedText = await this.textAnalerService.analyzeText(content, userId);
     return {
       statusCode: HttpStatus.CREATED,
       message: 'The text has been successfully created and analyzed.',
@@ -41,15 +45,21 @@ export class TextAnalyzerController {
     status: HttpStatus.OK,
     description: 'The words in the text have been successfully analyzed.',
   })
-  async getWordCount(@Body() createTextDto: CreateTextDto) {
+  async getWordCount(
+    @Body('content') content: string,
+    @User('userId') userId: string,
+  ) {
     const wordCount = await this.textAnalerService.getWordCount(
-      createTextDto.content,
-      createTextDto.userId || 'temp-user-id',
+      content,
+      userId,
     );
     return {
       statusCode: HttpStatus.OK,
       message: 'The words in the text have been successfully analyzed.',
-      data: wordCount,
+      data: {
+        type: 'words',
+        count: wordCount,
+      },
     };
   }
 
@@ -60,15 +70,21 @@ export class TextAnalyzerController {
     status: HttpStatus.OK,
     description: 'The characters in the text have been successfully analyzed.',
   })
-  async getCharacterCount(@Body() createTextDto: CreateTextDto) {
+  async getCharacterCount(
+    @Body('content') content: string,
+    @User('userId') userId: string,
+  ) {
     const characterCount = await this.textAnalerService.getCharacterCount(
-      createTextDto.content,
-      createTextDto.userId || 'temp-user-id',
+      content,
+      userId,
     );
     return {
       statusCode: HttpStatus.OK,
       message: 'The characters in the text have been successfully analyzed.',
-      data: characterCount,
+      data: {
+        type: 'characters',
+        count: characterCount,
+      },
     };
   }
 
@@ -79,15 +95,21 @@ export class TextAnalyzerController {
     status: HttpStatus.OK,
     description: 'The sentences in the text have been successfully analyzed.',
   })
-  async getSentenceCount(@Body() createTextDto: CreateTextDto) {
+  async getSentenceCount(
+    @Body('content') content: string,
+    @User('userId') userId: string,
+  ) {
     const sentenceCount = await this.textAnalerService.getSentenceCount(
-      createTextDto.content,
-      createTextDto.userId || 'temp-user-id',
+      content,
+      userId,
     );
     return {
       statusCode: HttpStatus.OK,
       message: 'The sentences in the text have been successfully analyzed.',
-      data: sentenceCount,
+      data: {
+        type: 'sentences',
+        count: sentenceCount,
+      },
     };
   }
 
@@ -98,21 +120,27 @@ export class TextAnalyzerController {
     status: HttpStatus.OK,
     description: 'The paragraphs in the text have been successfully analyzed.',
   })
-  async getParagraphCount(@Body() createTextDto: CreateTextDto) {
+  async getParagraphCount(
+    @Body('content') content: string,
+    @User('userId') userId: string,
+  ) {
     const paragraphCount = await this.textAnalerService.getParagraphCount(
-      createTextDto.content,
-      createTextDto.userId || 'temp-user-id',
+      content,
+      userId,
     );
     console.log('paragraphCount', paragraphCount);
     this.logger.log('paragraphCount', paragraphCount);
     return {
       statusCode: HttpStatus.OK,
       message: 'The paragraphs in the text have been successfully analyzed.',
-      data: paragraphCount,
+      data: {
+        type: 'paragraphs',
+        count: paragraphCount,
+      },
     };
   }
 
-  @Post('analyze/longest-words')
+  @Post('analyze/longestWord')
   @ApiOperation({ summary: 'Analyze the longest words in a text' })
   @ApiBody({ type: CreateTextDto })
   @ApiResponse({
@@ -120,29 +148,38 @@ export class TextAnalyzerController {
     description:
       'The longest words in the text have been successfully analyzed.',
   })
-  async getLongestWords(@Body() createTextDto: CreateTextDto) {
+  async getLongestWords(
+    @Body('content') content: string,
+    @User('userId') userId: string,
+  ) {
     const longestWords = await this.textAnalerService.getLongestWords(
-      createTextDto.content,
-      createTextDto.userId || 'temp-user-id',
+      content,
+      userId,
     );
     return {
       statusCode: HttpStatus.OK,
       message: 'The longest words in the text have been successfully analyzed.',
-      data: longestWords,
+      data: {
+        type: 'longestWord',
+        count: longestWords,
+      },
     };
   }
 
-  @Post('analyze/analyze-text')
+  @Post('analyze/text')
   @ApiOperation({ summary: 'Analyze the text' })
   @ApiBody({ type: CreateTextDto })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The text has been successfully analyzed.',
   })
-  async getAnalyzeText(@Body() createTextDto: CreateTextDto) {
-    const analyzeText = await this.textAnalerService.getAnalyzeText(
-      createTextDto.content,
-      createTextDto.userId || 'temp-user-id',
+  async getAnalyzeText(
+    @Body('content') content: string,
+    @User('userId') userId: string,
+  ) {
+    const analyzeText = await this.textAnalerService.analyzeText(
+      content,
+      userId,
     );
     return {
       statusCode: HttpStatus.OK,
@@ -158,10 +195,10 @@ export class TextAnalyzerController {
     status: HttpStatus.OK,
     description: 'The analyze has been successfully retrieved.',
   })
-  async getAllAnalyzeByUserId() {
-    const userId = 'temp-user-id';
+  async getAllAnalyzeByUserId(@User('userId') userId: string) {
     const allAnalyze =
       await this.textAnalerService.getAllAnalyzeByUserId(userId);
+    console.log('allAnalyze', allAnalyze);
     return {
       statusCode: HttpStatus.OK,
       message: 'The analyze has been successfully retrieved.',
