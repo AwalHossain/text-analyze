@@ -4,6 +4,8 @@ import * as request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { Connection } from 'mongoose';
+import { getConnectionToken } from '@nestjs/mongoose';
 
 type Response = {
   body: {
@@ -14,6 +16,7 @@ type Response = {
 };
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
+  let mongoConnection: Connection;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -21,6 +24,7 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    mongoConnection = moduleFixture.get<Connection>(getConnectionToken());
 
     // Mirror main.ts setup
     app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER as string));
@@ -47,6 +51,7 @@ describe('AppController (e2e)', () => {
   afterAll(async () => {
     if (app) {
       await app.close();
+      await mongoConnection.close();
     }
   });
 
