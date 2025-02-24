@@ -1,10 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { IUserRepository } from '../domain/interfaces/user.repository.interface';
 import { UserEntity } from '../domain/entities/user.entity';
 import { AuthResponseDto } from '../domain/dto/auth.dto';
