@@ -9,6 +9,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { WinstonModule } from 'nest-winston';
 import { loggerConfig } from './config/logger.config';
 import { TextAnalyzerModule } from './modules/text-analyzer/text-analyzer.module';
+import { AuthModule } from './modules/auth/auth.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,6 +26,7 @@ import { TextAnalyzerModule } from './modules/text-analyzer/text-analyzer.module
     WinstonModule.forRoot(loggerConfig),
     TextAnalyzerModule,
     CommonModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService, Logger],
