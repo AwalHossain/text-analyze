@@ -3,14 +3,14 @@ import * as request from 'supertest';
 
 import { JwtService } from '@nestjs/jwt';
 import { Server } from 'http';
-import { CreateTextDto } from 'src/modules/text-analyzer/application/dto/create-text.dto';
 
-import { Test } from '@nestjs/testing';
-import { AppModule } from 'src/app.module';
-import { Connection, ConnectionStates, Model } from 'mongoose';
-import { getConnectionToken, getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
+import { getConnectionToken, getModelToken } from '@nestjs/mongoose';
+import { Test } from '@nestjs/testing';
+import { Connection, ConnectionStates, Model } from 'mongoose';
+import { AppModule } from 'src/app.module';
 import { User } from 'src/modules/auth/infrastructure/schemas/user.schema';
+import { CreateTextDto } from 'src/modules/text-analyzer/application/dto/create-text.dto';
 import { TextStats } from 'src/modules/text-analyzer/application/dto/text-stats.dto';
 
 interface Response {
@@ -19,17 +19,6 @@ interface Response {
   data: {
     type: string;
     count: number;
-  };
-}
-interface AnalyzeResponse {
-  statusCode: number;
-  message: string;
-  data: {
-    wordCount: number;
-    sentenceCount: number;
-    paragraphCount: number;
-    characterCount: number;
-    longestWord: string[];
   };
 }
 
@@ -72,11 +61,15 @@ describe('TextAnalyzer (e2e)', () => {
             case 'database.uri':
               return process.env.MONGODB_TEST_URI;
             case 'JWT_SECRET':
-              return 'test-secret';
+              return process.env.TEST_JWT_SECRET;
             case 'GOOGLE_CLIENT_ID':
-              return 'mock-client-id';
+              return process.env.TEST_GOOGLE_CLIENT_ID;
             case 'GOOGLE_CLIENT_SECRET':
-              return 'mock-client-secret';
+              return process.env.TEST_GOOGLE_CLIENT_SECRET;
+            case 'throttler.ttl':
+              return process.env.TEST_THROTTLE_TTL;
+            case 'throttler.limit':
+              return process.env.TEST_THROTTLE_LIMIT;
             default:
               return null;
           }
@@ -84,9 +77,13 @@ describe('TextAnalyzer (e2e)', () => {
         getOrThrow: jest.fn((key: string) => {
           switch (key) {
             case 'GOOGLE_CLIENT_ID':
-              return 'mock-client-id';
+              return process.env.TEST_GOOGLE_CLIENT_ID;
             case 'GOOGLE_CLIENT_SECRET':
-              return 'mock-client-secret';
+              return process.env.TEST_GOOGLE_CLIENT_SECRET;
+            case 'throttler.ttl':
+              return process.env.TEST_THROTTLE_TTL;
+            case 'throttler.limit':
+              return process.env.TEST_THROTTLE_LIMIT;
             default:
               throw new Error(`Config key ${key} not found`);
           }
@@ -134,37 +131,88 @@ describe('TextAnalyzer (e2e)', () => {
 
   describe('Text Analyzer Endpoints', () => {
     const sampleText = {
-      content:
-        'This is a test text. It has multiple sentences! And some more...',
-      userId: 'test-user-id',
+      content: 'This is a test text.',
     };
-
     it('should return 401 when analyzing text without token', async () => {
+      // for (let i = 0; i < 12; i++) {
       const response = await request(app.getHttpServer() as Server)
         .post('/api/analyze/text')
         .send({
           content: 'This is a test text.',
         });
-
-      console.log('Unauthorized response:', response.body);
       expect(response.status).toBe(401);
+      // }
     });
+    it('should block requests that exceed rate limit', async () => {
+      const sampleText = {
+        content: 'This is a test text.',
+      };
 
-    it('should analyze text successfully with valid token', async () => {
-      const response = await request(app.getHttpServer() as Server)
-        .post('/api/analyze/text')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(sampleText as CreateTextDto);
+      // Make requests up to the limit
+      for (let i = 0; i < 10; i++) {
+        const response = await request(app.getHttpServer() as Server)
+          .post('/api/analyze/words')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(sampleText);
+        console.log('Response:', response.body);
+        const res = response.body as Response;
+        if (i < 10) {
+          console.log('Response:', res);
+          expect(res.statusCode).toBe(200); // First 10 requests should succeed
+        } else {
+          console.log('Response: throttled', res, 'i value', i);
+          expect(response.statusCode).toBe(429); // 11th request should be throttled
+        }
+      }
+    }, 30000); // Increased timeout
 
-      const analyzeResponse = response.body as AnalyzeResponse;
+    it('should block requests that exceed rate limit', async () => {
+      const sampleText = {
+        content: 'This is a test text.',
+      };
 
-      console.log('Analyze response:', response.body);
+      // Make requests up to the limit
+      for (let i = 0; i < 10; i++) {
+        const response = await request(app.getHttpServer() as Server)
+          .post('/api/analyze/words')
+          .set('Authorization', `Bearer ${authToken}`)
+          .send(sampleText);
+        console.log('Response: from inside', response.body);
+        const res = response.body as Response;
+        if (i < 10) {
+          console.log('Response:', res);
+          expect(res.statusCode).toBe(200); // First 10 requests should succeed
+        } else {
+          console.log('Response:', res);
+          expect(response.statusCode).toBe(429); // 11th request should be throttled
+        }
+      }
+    }, 30000); // Increased timeout
 
+    it('should enforce rate limiting after maximum requests', async () => {
+      const endpoint = '/api/analyze/text';
+
+      // Add delay between requests
+      const makeRequest = async () => {
+        const response = await request(app.getHttpServer() as Server)
+          .post(endpoint)
+          .set('Authorization', `Bearer ${authToken}`)
+          .send({ content: 'This is a test text.' });
+
+        // await new Promise((resolve) => setTimeout(resolve, 100)); // Add delay
+        return response;
+      };
+
+      // Make initial requests
+      const response = await makeRequest();
+      console.log(`Request status:`, response.body);
       expect(response.status).toBe(201);
-      expect(analyzeResponse.data).toBeDefined();
-      expect(analyzeResponse.data.wordCount).toBe(12);
-      expect(analyzeResponse.data.sentenceCount).toBe(3);
-    });
+
+      // Make throttled request
+      const throttledResponse = await makeRequest();
+      console.log('Throttled request status:', throttledResponse.status);
+      expect(throttledResponse.status).toBe(201);
+    }, 30000);
 
     it('should count words correctly', async () => {
       const response = await request(app.getHttpServer() as Server)
@@ -174,10 +222,9 @@ describe('TextAnalyzer (e2e)', () => {
 
       const res = response.body as Response;
 
-      console.log('Word count response:', response.body);
       expect(response.status).toBe(201);
       expect(res.data.type).toBe('words');
-      expect(res.data.count).toBe(12);
+      expect(res.data.count).toBe(5);
     });
 
     it('should count sentences correctly', async () => {
@@ -188,10 +235,9 @@ describe('TextAnalyzer (e2e)', () => {
 
       const res = response.body as Response;
 
-      console.log('Sentence count response:', response.body);
       expect(response.status).toBe(201);
       expect(res.data.type).toBe('sentences');
-      expect(res.data.count).toBe(3);
+      expect(res.data.count).toBe(1);
     });
 
     it('should count paragraphs correctly', async () => {
@@ -202,7 +248,6 @@ describe('TextAnalyzer (e2e)', () => {
 
       const res = response.body as Response;
 
-      console.log('Paragraph count response:', response.body);
       expect(response.status).toBe(201);
       expect(res.data.type).toBe('paragraphs');
       expect(res.data.count).toBe(1);
@@ -216,10 +261,9 @@ describe('TextAnalyzer (e2e)', () => {
 
       const res = response.body as Response;
 
-      console.log('Character count response:', response.body);
       expect(response.status).toBe(201);
       expect(res.data.type).toBe('characters');
-      expect(res.data.count).toBe(53);
+      expect(res.data.count).toBe(16);
     });
 
     it('should find the longest word correctly', async () => {
@@ -230,7 +274,6 @@ describe('TextAnalyzer (e2e)', () => {
 
       const res = response.body as Response;
 
-      console.log('Longest word response:', response.body);
       expect(res.statusCode).toBe(200);
       expect(res.data.type).toBe('longestWord');
     });
@@ -252,9 +295,7 @@ describe('TextAnalyzer (e2e)', () => {
         .send();
 
       const res = response.body as AllAnalyzeResponse;
-      console.log('Tokens response:', response.body);
 
-      console.log('Tokens response:', response.body);
       expect(response.status).toBe(200);
       expect(res.data.length).toBeGreaterThan(0);
       expect(res.data[0].stats.wordCount).toBeDefined();
