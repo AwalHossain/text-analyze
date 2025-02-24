@@ -1,12 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { TextRepository } from '../../infrastructure/repositories/text.repository';
-import { TextAnalyzerEntity } from '../../domain/entities/text.entity';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject } from '@nestjs/common';
-import { Cache } from 'cache-manager';
 import { TextUtils } from '@common/utils/text-analysis.utils';
-import { TextStats } from '../dto/text-stats.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Cache } from 'cache-manager';
+import { TextAnalyzerEntity } from '../../domain/entities/text.entity';
+import { TextRepository } from '../../infrastructure/repositories/text.repository';
 import { TextDocument } from '../../infrastructure/schemas/text.schema';
+import { TextStats } from '../dto/text-stats.dto';
 
 @Injectable()
 export class TextAnalyzerService {
@@ -26,13 +25,7 @@ export class TextAnalyzerService {
       this.logger.log(`Text analysis saved to database for user ${userId}`);
       const cachedStats = await this.cacheManager.get<TextStats>(cacheKey);
       if (cachedStats) {
-        const res = await this.textRepository.analyzeText(
-          userId,
-          content,
-          cachedStats,
-        ); // Use repository to save
-        console.log(res, 'res from analyze text');
-
+        await this.textRepository.analyzeText(userId, content, cachedStats); // Use repository to save
         this.logger.log(`Cache hit for user ${userId}`);
 
         return cachedStats;
