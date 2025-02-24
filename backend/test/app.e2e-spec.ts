@@ -56,24 +56,28 @@ describe('AppController (e2e)', () => {
   });
 
   it('/ (GET)', async () => {
-    return request(app.getHttpServer())
-      .get('/api/')
-      .expect(200)
-      .expect('Hello World!');
+    for (let i = 0; i < 10; i++) {
+      await request(app.getHttpServer())
+        .get('/api/')
+        .expect(200)
+        .expect('Hello World!');
+    }
   });
 
   it('/health (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/api/health')
-      .expect(200)
-      .expect((response: Response) => {
-        const body = response.body;
-        expect(body).toBeDefined();
-        expect(body.status).toBe('OK');
-        expect(body.timestamp).toBeDefined();
-        expect(body.services).toBeDefined();
-        expect(body.services.database).toBeDefined();
-        expect(body.services.logger).toBe('up');
-      });
+    for (let i = 0; i < 20; i++) {
+      request(app.getHttpServer())
+        .get('/api/health')
+        .expect(200)
+        .expect((response: Response) => {
+          const body = response.body;
+          expect(body).toBeDefined();
+          expect(body.status).toBe('OK');
+          expect(body.timestamp).toBeDefined();
+          expect(body.services).toBeDefined();
+          expect(body.services.database).toBeDefined();
+          expect(body.services.logger).toBe('up');
+        });
+    }
   });
 });
