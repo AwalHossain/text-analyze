@@ -1,5 +1,3 @@
-import { CreateTextDto } from '../../application/dto/create-text.dto';
-import { TextAnalyzerService } from '../../application/services/text-analyer.service';
 import {
   Body,
   Controller,
@@ -9,10 +7,18 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { TextStatsDto } from '../../application/dto/text-stats.dto';
-import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { User } from 'src/modules/auth/decorators/user.decorator';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
+import { CreateTextDto } from '../../application/dto/create-text.dto';
+import { TextStatsDto } from '../../application/dto/text-stats.dto';
+import { TextAnalyzerService } from '../../application/services/text-analyer.service';
 
 @ApiTags('Text Analyzer')
 @Controller()
@@ -23,7 +29,12 @@ export class TextAnalyzerController {
 
   @Post()
   @ApiOperation({ summary: 'Create and analyze a new text' })
+  @ApiResponse({
+    status: 429,
+    description: 'Too Many Requests - Rate limit exceeded',
+  })
   @ApiBody({ type: CreateTextDto })
+  @ApiBearerAuth('JWT')
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'The text has been successfully created and analyzed.',
@@ -41,6 +52,7 @@ export class TextAnalyzerController {
   @Post('analyze/words')
   @ApiOperation({ summary: 'Analyze words in a text' })
   @ApiBody({ type: CreateTextDto })
+  @ApiBearerAuth('JWT')
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The words in the text have been successfully analyzed.',
@@ -70,6 +82,7 @@ export class TextAnalyzerController {
     status: HttpStatus.OK,
     description: 'The characters in the text have been successfully analyzed.',
   })
+  @ApiBearerAuth('JWT')
   async getCharacterCount(
     @Body('content') content: string,
     @User('userId') userId: string,
@@ -95,6 +108,7 @@ export class TextAnalyzerController {
     status: HttpStatus.OK,
     description: 'The sentences in the text have been successfully analyzed.',
   })
+  @ApiBearerAuth('JWT')
   async getSentenceCount(
     @Body('content') content: string,
     @User('userId') userId: string,
@@ -120,6 +134,7 @@ export class TextAnalyzerController {
     status: HttpStatus.OK,
     description: 'The paragraphs in the text have been successfully analyzed.',
   })
+  @ApiBearerAuth('JWT')
   async getParagraphCount(
     @Body('content') content: string,
     @User('userId') userId: string,
@@ -148,6 +163,7 @@ export class TextAnalyzerController {
     description:
       'The longest words in the text have been successfully analyzed.',
   })
+  @ApiBearerAuth('JWT')
   async getLongestWords(
     @Body('content') content: string,
     @User('userId') userId: string,
@@ -173,6 +189,7 @@ export class TextAnalyzerController {
     status: HttpStatus.OK,
     description: 'The text has been successfully analyzed.',
   })
+  @ApiBearerAuth('JWT')
   async getAnalyzeText(
     @Body('content') content: string,
     @User('userId') userId: string,
@@ -195,6 +212,7 @@ export class TextAnalyzerController {
     status: HttpStatus.OK,
     description: 'The analyze has been successfully retrieved.',
   })
+  @ApiBearerAuth('JWT')
   async getAllAnalyzeByUserId(@User('userId') userId: string) {
     const allAnalyze =
       await this.textAnalerService.getAllAnalyzeByUserId(userId);
