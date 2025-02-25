@@ -44,6 +44,7 @@ services:
       - "27017:27017"
     networks:
       - app-network
+    command: mongod --bind_ip_all
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]

@@ -1,8 +1,10 @@
-import { INestApplication } from '@nestjs/common';
+import { ThrottlerExceptionFilter } from '@common/filters/throttler-exception.filter';
+import { CanActivate, ExecutionContext, HttpStatus, INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerException } from '@nestjs/throttler';
 import { Server } from 'http';
 import { AppModule } from 'src/app.module';
 import * as request from 'supertest';
@@ -16,16 +18,36 @@ interface Response {
   };
 }
 
+// Create a mock throttler guard class
+class MockThrottlerGuard implements CanActivate {
+  private static requestCount = 0;
+  private readonly limit = parseInt(process.env.TEST_THROTTLE_LIMIT || '3'); // Hard-coded limit for testing
+
+  constructor() {
+    console.log('MockThrottlerGuard instantiated');
+  }
+
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> {
+    MockThrottlerGuard.requestCount++;
+    console.log(`Guard check - Request count: ${MockThrottlerGuard.requestCount}`);
+    
+    // Allow only 3 requests, then start throttling
+    if (MockThrottlerGuard.requestCount <= this.limit) {
+      return true;
+    }
+    
+    console.log('Throwing throttler exception');
+    throw new ThrottlerException('Too many requests');
+  }
+}
+
 describe('Throttler (e2e)', () => {
   let app: INestApplication;
   let jwtService: JwtService;
   let authToken: string;
   let testUserId: string;
-  let requestCount = 0;
 
-  beforeEach(async () => {
-    requestCount = 0;
-
+  beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     })
@@ -68,21 +90,25 @@ describe('Throttler (e2e)', () => {
           }
         }),
       })
-      .overrideGuard(ThrottlerGuard)
+      // Override the APP_GUARD to use our mock guard
+      .overrideProvider(APP_GUARD)
       .useValue({
-        canActivate: (context) => {
-          requestCount++;
-          if (requestCount <= 3) {
-            return true;
-          }
-          const error = new Error('ThrottlerException: Too Many Requests');
-          error.name = 'ThrottlerException';
-          throw error;
-        },
+        useClass: MockThrottlerGuard,
       })
       .compile();
 
     app = moduleFixture.createNestApplication();
+    
+    // This is important - we need to set up the app exactly as it's set up in main.ts
+    // to ensure exceptions are handled properly
+    app.setGlobalPrefix('api');
+    
+    // Register the ThrottlerExceptionFilter to handle ThrottlerException
+    app.useGlobalFilters(new ThrottlerExceptionFilter());
+    
+    // Explicitly register the MockThrottlerGuard as a global guard
+    app.useGlobalGuards(new MockThrottlerGuard());
+    
     jwtService = moduleFixture.get<JwtService>(JwtService);
 
     testUserId = 'test-user-id';
@@ -91,7 +117,6 @@ describe('Throttler (e2e)', () => {
       email: 'test@example.com',
     });
 
-    app.setGlobalPrefix('api');
     await app.init();
   });
 
@@ -99,28 +124,26 @@ describe('Throttler (e2e)', () => {
     const sampleText = {
       content: 'This is a test text.',
     };
-    const throttleLimit = parseInt(process.env.TEST_THROTTLE_LIMIT || '10', 10);
-    // Test successful requests
-    for (let i = 0; i < throttleLimit; i++) {
+    let limit = parseInt(process.env.TEST_THROTTLE_LIMIT || '3');
+    // Test successful requests (first 3 should work)
+    for (let i = 0; i < limit; i++) {
       const response = await request(app.getHttpServer() as Server)
         .post('/api/analyze/words')
         .set('Authorization', `Bearer ${authToken}`)
         .send(sampleText);
 
-      const res = response.body as Response;
-
-      expect(res.statusCode).toBe(200);
-      console.log(`Request ${i + 1} status:`, response.statusCode);
+      console.log(`Request ${i + 1} status:`, response.status);
+      expect(response.status).toBe(201);
     }
 
-    // Test throttled request
+    // Test throttled request (4th request should be throttled)
     const throttledResponse = await request(app.getHttpServer() as Server)
       .post('/api/analyze/words')
       .set('Authorization', `Bearer ${authToken}`)
       .send(sampleText);
 
-    console.log('Throttled request status:', throttledResponse.statusCode);
-    expect(throttledResponse.statusCode).toBe(429);
+    console.log('Throttled request status:', throttledResponse.status);
+    expect(throttledResponse.status).toBe(HttpStatus.TOO_MANY_REQUESTS); // 429
   }, 10000);
 
   afterAll(async () => {

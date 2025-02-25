@@ -15,11 +15,11 @@ export const loggerConfig: WinstonModuleOptions = {
         nestWinstonModuleUtilities.format.nestLike(),
       ),
     }),
-    // Debug Logs
+    // Combined Logs (debug, info, warn)
     new winston.transports.DailyRotateFile({
-      filename: 'logs/debug-%DATE%.log',
+      filename: 'logs/combined-%DATE%.log',
       datePattern: 'YYYY-MM-DD',
-      level: 'debug',
+      level: 'debug', // This captures debug, info, and warn levels
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.json(),
@@ -27,31 +27,7 @@ export const loggerConfig: WinstonModuleOptions = {
       maxSize: '20m',
       maxFiles: '14d',
     }),
-    // Info Logs
-    new winston.transports.DailyRotateFile({
-      filename: 'logs/info-%DATE%.log',
-      datePattern: 'YYYY-MM-DD',
-      level: 'info',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json(),
-      ),
-      maxSize: '20m',
-      maxFiles: '14d',
-    }),
-    // Warning Logs
-    new winston.transports.DailyRotateFile({
-      filename: 'logs/warn-%DATE%.log',
-      datePattern: 'YYYY-MM-DD',
-      level: 'warn',
-      format: winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json(),
-      ),
-      maxSize: '20m',
-      maxFiles: '14d',
-    }),
-    // Error Logs
+    // Error Logs (separate file)
     new winston.transports.DailyRotateFile({
       filename: 'logs/error-%DATE%.log',
       datePattern: 'YYYY-MM-DD',
