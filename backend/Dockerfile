@@ -38,10 +38,10 @@ COPY package*.json ./
 # Install production dependencies
 RUN npm ci --only=production
 
-EXPOSE 3000
+EXPOSE 5000
 
 ENV NODE_ENV=production
-ENV LOG_PATH=/var/log/text-analyzer
+ENV LOG_PATH=/usr/src/app/logs
 
 USER node
 
