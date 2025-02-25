@@ -44,7 +44,9 @@ describe('Throttler (e2e)', () => {
             case 'throttler.ttl':
               return process.env.TEST_THROTTLE_TTL;
             case 'throttler.limit':
-              return 3;
+              return process.env.TEST_THROTTLE_LIMIT;
+            case 'API_URL':
+              return process.env.API_URL;
             default:
               return null;
           }
@@ -58,7 +60,9 @@ describe('Throttler (e2e)', () => {
             case 'throttler.ttl':
               return process.env.TEST_THROTTLE_TTL;
             case 'throttler.limit':
-              return 3;
+              return process.env.TEST_THROTTLE_LIMIT;
+            case 'API_URL':
+              return process.env.API_URL;
             default:
               throw new Error(`Config key ${key} not found`);
           }
@@ -95,9 +99,12 @@ describe('Throttler (e2e)', () => {
     const sampleText = {
       content: 'This is a test text.',
     };
-
+    let throttleLimit = parseInt( 
+      process.env.TEST_THROTTLE_LIMIT || '10',
+      10,
+    );
     // Test successful requests
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < throttleLimit; i++) {
       const response = await request(app.getHttpServer() as Server)
         .post('/api/analyze/words')
         .set('Authorization', `Bearer ${authToken}`)
