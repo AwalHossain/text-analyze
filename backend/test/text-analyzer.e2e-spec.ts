@@ -70,6 +70,8 @@ describe('TextAnalyzer (e2e)', () => {
               return process.env.TEST_THROTTLE_TTL;
             case 'throttler.limit':
               return process.env.TEST_THROTTLE_LIMIT;
+            case 'API_URL':
+              return process.env.API_URL;
             default:
               return null;
           }
@@ -84,6 +86,8 @@ describe('TextAnalyzer (e2e)', () => {
               return process.env.TEST_THROTTLE_TTL;
             case 'throttler.limit':
               return process.env.TEST_THROTTLE_LIMIT;
+            case 'API_URL':
+              return process.env.API_URL;
             default:
               throw new Error(`Config key ${key} not found`);
           }
@@ -143,51 +147,6 @@ describe('TextAnalyzer (e2e)', () => {
       expect(response.status).toBe(401);
       // }
     });
-    it('should block requests that exceed rate limit', async () => {
-      const sampleText = {
-        content: 'This is a test text.',
-      };
-
-      // Make requests up to the limit
-      for (let i = 0; i < 10; i++) {
-        const response = await request(app.getHttpServer() as Server)
-          .post('/api/analyze/words')
-          .set('Authorization', `Bearer ${authToken}`)
-          .send(sampleText);
-        console.log('Response:', response.body);
-        const res = response.body as Response;
-        if (i < 10) {
-          console.log('Response:', res);
-          expect(res.statusCode).toBe(200); // First 10 requests should succeed
-        } else {
-          console.log('Response: throttled', res, 'i value', i);
-          expect(response.statusCode).toBe(429); // 11th request should be throttled
-        }
-      }
-    }, 30000); // Increased timeout
-
-    it('should block requests that exceed rate limit', async () => {
-      const sampleText = {
-        content: 'This is a test text.',
-      };
-
-      // Make requests up to the limit
-      for (let i = 0; i < 10; i++) {
-        const response = await request(app.getHttpServer() as Server)
-          .post('/api/analyze/words')
-          .set('Authorization', `Bearer ${authToken}`)
-          .send(sampleText);
-        console.log('Response: from inside', response.body);
-        const res = response.body as Response;
-        if (i < 10) {
-          console.log('Response:', res);
-          expect(res.statusCode).toBe(200); // First 10 requests should succeed
-        } else {
-          console.log('Response:', res);
-          expect(response.statusCode).toBe(429); // 11th request should be throttled
-        }
-      }
-    }, 30000); // Increased timeout
 
     it('should enforce rate limiting after maximum requests', async () => {
       const endpoint = '/api/analyze/text';
