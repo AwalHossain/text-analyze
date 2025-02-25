@@ -99,10 +99,7 @@ describe('Throttler (e2e)', () => {
     const sampleText = {
       content: 'This is a test text.',
     };
-    let throttleLimit = parseInt( 
-      process.env.TEST_THROTTLE_LIMIT || '10',
-      10,
-    );
+    const throttleLimit = parseInt(process.env.TEST_THROTTLE_LIMIT || '10', 10);
     // Test successful requests
     for (let i = 0; i < throttleLimit; i++) {
       const response = await request(app.getHttpServer() as Server)
