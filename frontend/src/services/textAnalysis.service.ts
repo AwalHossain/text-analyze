@@ -27,41 +27,34 @@ class TextAnalysisService {
     }
     return TextAnalysisService.instance;
   }
-
   async analyzeText({ content }: AnalysisRequest) {
-    try {
-      const response = await api.post(`/analyze/text`, {
-        content,
-      });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to analyze text');
-    }
+    const response = await api.post(`/analyze/text`, {
+      content,
+    });
+    return response.data;
   }
 
   async analyzeSpecific({ content, type }: Required<AnalysisRequest>) {
-    try {
       const response = await api.post(`/analyze/${type}`, {
         content,
       });
       return response.data;
     } catch (error: any) {
-      throw new Error(
-        error.response?.data?.message || `Failed to analyze ${type}`,
-      );
+      console.log(error.response,"error from the front", error);
+      throw error;
+    }
+
+    async getAllAnalyses() {
+      try {
+        const response = await api.get('/analyze/all');
+        return response.data;
+      } catch (error: any) {
+        console.log(error.response,"error", error);
+        throw error;
+      }
     }
   }
 
-  async getAllAnalyses() {
-    try {
-      const response = await api.get('/analyze/all');
-      return response.data;
-    } catch (error: any) {
-      throw new Error(
-        error.response?.data?.message || 'Failed to get all analyses',
-      );
-    }
-  }
-}
+
 
 export const textAnalysisService = TextAnalysisService.getInstance();
