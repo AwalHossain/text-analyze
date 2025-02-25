@@ -2,30 +2,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
-import databaseConfig from './config/database.config';
-import { MongooseModule } from '@nestjs/mongoose';
-import { WinstonModule } from 'nest-winston';
-import { loggerConfig } from './config/logger.config';
 import { Logger } from '@nestjs/common';
 
 describe('AppController', () => {
   let appController: AppController;
+  let appService: AppService;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          load: [databaseConfig],
-        }),
-        MongooseModule.forRoot(
-          process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/test',
-        ),
-        WinstonModule.forRoot(loggerConfig),
-      ],
       controllers: [AppController],
       providers: [
-        AppService,
+        {
+          provide: AppService,
+          useValue: {
+            getHello: jest.fn(),
+            checkHealth: jest.fn(),
+          },
+        },
         {
           provide: Logger,
           useValue: {
@@ -39,17 +32,71 @@ describe('AppController', () => {
     }).compile();
 
     appController = app.get<AppController>(AppController);
+    appService = app.get<AppService>(AppService);
   });
 
   describe('health check', () => {
     it('should return health status "OK"', async () => {
+      jest.spyOn(appService, 'checkHealth').mockResolvedValue({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        services: {
+          database: 'up',
+          logger: 'up',
+        },
+      });
+
       const result = await appController.getHealth();
+
       expect(result).toMatchObject({
-        status: expect.stringMatching(/^OK$/),
+        status: 'OK',
         timestamp: expect.any(String),
         services: {
           database: expect.stringMatching(/^up$/),
           logger: expect.stringMatching(/^up$/),
+        },
+      });
+    });
+
+    it('should handle database connection failure gracefully', async () => {
+      // Mock service to simulate database failure
+      jest.spyOn(appService, 'checkHealth').mockResolvedValue({
+        status: 'ERROR',
+        timestamp: new Date().toISOString(),
+        services: {
+          database: 'down',
+          logger: 'up',
+        },
+      });
+
+      const result = await appController.getHealth();
+
+      expect(result).toMatchObject({
+        status: expect.stringMatching(/^ERROR$/),
+        services: {
+          database: expect.stringMatching(/^down$/),
+          logger: expect.stringMatching(/^up$/),
+        },
+      });
+    });
+
+    it('should handle logger service failure gracefully', async (): Promise<void> => {
+      jest.spyOn(appService, 'checkHealth').mockResolvedValue({
+        status: 'ERROR',
+        timestamp: new Date().toISOString(),
+        services: {
+          database: 'up',
+          logger: 'down',
+        },
+      });
+
+      const result = await appController.getHealth();
+
+      expect(result).toMatchObject({
+        status: expect.stringMatching(/^ERROR$/),
+        services: {
+          database: expect.stringMatching(/^up$/),
+          logger: expect.stringMatching(/^down$/),
         },
       });
     });

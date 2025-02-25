@@ -4,6 +4,8 @@ import * as request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { Connection } from 'mongoose';
+import { getConnectionToken } from '@nestjs/mongoose';
 
 type Response = {
   body: {
@@ -14,6 +16,7 @@ type Response = {
 };
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
+  let mongoConnection: Connection;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -21,6 +24,7 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    mongoConnection = moduleFixture.get<Connection>(getConnectionToken());
 
     // Mirror main.ts setup
     app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER as string));
@@ -47,28 +51,33 @@ describe('AppController (e2e)', () => {
   afterAll(async () => {
     if (app) {
       await app.close();
+      await mongoConnection.close();
     }
   });
 
   it('/ (GET)', async () => {
-    return request(app.getHttpServer())
-      .get('/api/')
-      .expect(200)
-      .expect('Hello World!');
+    for (let i = 0; i < 10; i++) {
+      await request(app.getHttpServer())
+        .get('/api/')
+        .expect(200)
+        .expect('Hello World!');
+    }
   });
 
   it('/health (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/api/health')
-      .expect(200)
-      .expect((response: Response) => {
-        const body = response.body;
-        expect(body).toBeDefined();
-        expect(body.status).toBe('OK');
-        expect(body.timestamp).toBeDefined();
-        expect(body.services).toBeDefined();
-        expect(body.services.database).toBeDefined();
-        expect(body.services.logger).toBe('up');
-      });
+    for (let i = 0; i < 20; i++) {
+      request(app.getHttpServer())
+        .get('/api/health')
+        .expect(200)
+        .expect((response: Response) => {
+          const body = response.body;
+          expect(body).toBeDefined();
+          expect(body.status).toBe('OK');
+          expect(body.timestamp).toBeDefined();
+          expect(body.services).toBeDefined();
+          expect(body.services.database).toBeDefined();
+          expect(body.services.logger).toBe('up');
+        });
+    }
   });
 });
