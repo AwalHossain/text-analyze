@@ -27,13 +27,14 @@ export const LoginDialog = ({
     const top = window.screenY + (window.outerHeight - height) / 2;
     
     const popup = window.open(
-      'http://localhost:3000/api/auth/google',
+      `${import.meta.env.VITE_API_URL}/auth/google`,
       'Google Login',
       `width=${width},height=${height},left=${left},top=${top}`
     );
 
     window.addEventListener('message', (event) => {
-      if (event.origin !== 'http://localhost:3000') return;
+      // if (event.origin !== import.meta.env.VITE_API_URL) return;
+      console.log(event.data, 'event.data');
       if (event.data.type === 'AUTH_SUCCESS') {
         const authResponse = event.data.data;
         
