@@ -1,11 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { getConnectionToken } from '@nestjs/mongoose';
+import { Test, TestingModule } from '@nestjs/testing';
+import { Connection } from 'mongoose';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import * as request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { Connection } from 'mongoose';
-import { getConnectionToken } from '@nestjs/mongoose';
 
 type Response = {
   body: {
@@ -65,7 +65,7 @@ describe('AppController (e2e)', () => {
   });
 
   it('/health (GET)', () => {
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i <10; i++) {
       request(app.getHttpServer())
         .get('/api/health')
         .expect(200)

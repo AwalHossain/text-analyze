@@ -4,6 +4,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Express } from 'express';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { AppModule } from './app.module';
+import { ThrottlerExceptionFilter } from './common/filters/throttler-exception.filter';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -12,6 +14,9 @@ async function bootstrap() {
   expressApp.set('trust proxy', true);
   // global prefix
   app.setGlobalPrefix('api');
+
+  // Register global exception filters
+  app.useGlobalFilters(new ThrottlerExceptionFilter());
 
   // swagger
   const options = new DocumentBuilder()

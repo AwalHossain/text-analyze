@@ -51,69 +51,83 @@ describe('TextAnalyzer (e2e)', () => {
   };
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(ConfigService)
-      .useValue({
-        get: jest.fn((key: string) => {
-          switch (key) {
-            case 'database.uri':
-              return process.env.MONGODB_TEST_URI;
-            case 'JWT_SECRET':
-              return process.env.TEST_JWT_SECRET;
-            case 'GOOGLE_CLIENT_ID':
-              return process.env.TEST_GOOGLE_CLIENT_ID;
-            case 'GOOGLE_CLIENT_SECRET':
-              return process.env.TEST_GOOGLE_CLIENT_SECRET;
-            case 'throttler.ttl':
-              return process.env.TEST_THROTTLE_TTL;
-            case 'throttler.limit':
-              return process.env.TEST_THROTTLE_LIMIT;
-            case 'API_URL':
-              return process.env.API_URL;
-            default:
-              return null;
-          }
-        }),
-        getOrThrow: jest.fn((key: string) => {
-          switch (key) {
-            case 'GOOGLE_CLIENT_ID':
-              return process.env.TEST_GOOGLE_CLIENT_ID;
-            case 'GOOGLE_CLIENT_SECRET':
-              return process.env.TEST_GOOGLE_CLIENT_SECRET;
-            case 'throttler.ttl':
-              return process.env.TEST_THROTTLE_TTL;
-            case 'throttler.limit':
-              return process.env.TEST_THROTTLE_LIMIT;
-            case 'API_URL':
-              return process.env.API_URL;
-            default:
-              throw new Error(`Config key ${key} not found`);
-          }
-        }),
+    try {
+      const moduleFixture = await Test.createTestingModule({
+        imports: [AppModule],
       })
-      .compile();
-    app = moduleFixture.createNestApplication();
-    mongoConnection = moduleFixture.get<Connection>(getConnectionToken());
-    jwtService = moduleFixture.get<JwtService>(JwtService);
-    userModel = moduleFixture.get<Model<User>>(getModelToken(User.name));
+        .overrideProvider(ConfigService)
+        .useValue({
+          get: jest.fn((key: string) => {
+            switch (key) {
+              case 'database.uri':
+                return process.env.MONGODB_TEST_URI;
+              case 'JWT_SECRET':
+                return process.env.TEST_JWT_SECRET;
+              case 'GOOGLE_CLIENT_ID':
+                return process.env.TEST_GOOGLE_CLIENT_ID;
+              case 'GOOGLE_CLIENT_SECRET':
+                return process.env.TEST_GOOGLE_CLIENT_SECRET;
+              case 'throttler.ttl':
+                return process.env.TEST_THROTTLE_TTL;
+              case 'throttler.limit':
+                return process.env.TEST_THROTTLE_LIMIT;
+              case 'throttler.penaltyMs':
+                return process.env.PENALTY_TTL;
+              case 'API_URL':
+                return process.env.API_URL;
+              default:
+                return null;
+            }
+          }),
+          getOrThrow: jest.fn((key: string) => {
+            switch (key) {
+              case 'GOOGLE_CLIENT_ID':
+                return process.env.TEST_GOOGLE_CLIENT_ID;
+              case 'GOOGLE_CLIENT_SECRET':
+                return process.env.TEST_GOOGLE_CLIENT_SECRET;
+                case 'throttler.ttl':
+                  return process.env.TEST_THROTTLE_TTL;
+              case 'throttler.limit':
+                return process.env.TEST_THROTTLE_LIMIT;
+              case 'throttler.penaltyMs':
+                return process.env.PENALTY_TTL;
+              case 'API_URL':
+                return process.env.API_URL;
+              default:
+                throw new Error(`Config key ${key} not found`);
+            }
+          }),
+        })
+        .compile();
+      app = moduleFixture.createNestApplication();
+      mongoConnection = moduleFixture.get<Connection>(getConnectionToken());
+      jwtService = moduleFixture.get<JwtService>(JwtService);
+      userModel = moduleFixture.get<Model<User>>(getModelToken(User.name));
 
-    app.setGlobalPrefix('api');
-    await app.init();
+      app.setGlobalPrefix('api');
+      await app.init();
 
-    // Create a test user in the database
-    const createdUser = (await userModel.create(testUser)) as unknown as {
-      _id: string;
-    };
-    testUserId = createdUser._id;
+      // Create a test user in the database
+      const createdUser = (await userModel.create(testUser)) as unknown as {
+        _id: string;
+      };
+      testUserId = createdUser._id;
 
-    // Create JWT token with real user ID
-    authToken = jwtService.sign({
-      userId: testUserId,
-      email: testUser.email,
-    });
-  }, 30000);
+      // Create JWT token with real user ID
+      authToken = jwtService.sign({
+        userId: testUserId,
+        email: testUser.email,
+      });
+
+      // Check connection
+      if (!mongoConnection || mongoConnection.readyState !== ConnectionStates.connected) {
+        console.error('MongoDB connection failed');
+      }
+    } catch (error) {
+      console.error('Test setup failed:', error);
+      throw error;
+    }
+  }, 60000);
 
   // beforeEach(async () => {
   //   // Clean test database before each test

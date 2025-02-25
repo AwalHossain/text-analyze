@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ThrottlerException } from '@nestjs/throttler';
 
 @Injectable()
@@ -14,12 +15,17 @@ export class CustomThrottlerGuard implements CanActivate {
     string,
     { hits: number; resetTime: number; blockedUntil?: number }
   > = new Map();
+  private readonly limit: number;
+  private readonly ttl: number;
+  private readonly penaltyMs: number;
 
-  // Configuration
-  private readonly ttlMs = 60000; // 60 seconds window
-  private readonly limit = 10; // 10 requests per window
-  private readonly penaltyMs = 300000; // 5 minutes penalty box
-
+  constructor(private readonly configService: ConfigService) {
+    this.limit = this.configService.get<number>('THROTTLE_LIMIT', 10);
+    this.ttl = this.configService.get<number>('THROTTLE_TTL', 60000);
+    this.penaltyMs = this.configService.get<number>('PENALTY_TTL', 10000);
+    this.logger.log(`Rate limiter initialized with limit: ${this.limit}, ttl: ${this.ttl}ms`);
+  }
+ 
   canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const ip = request.ip || 'anonymous';
@@ -43,7 +49,7 @@ export class CustomThrottlerGuard implements CanActivate {
     if (!record || record.resetTime < now) {
       this.ipHitMap.set(ip, {
         hits: 1,
-        resetTime: now + this.ttlMs,
+        resetTime: now + this.ttl,
       });
       this.logger.log(`Request count for ${ip}: 1/${this.limit}`);
       return Promise.resolve(true);
