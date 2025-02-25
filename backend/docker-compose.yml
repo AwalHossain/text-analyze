@@ -9,18 +9,21 @@ services:
     volumes:
       - ./logs:/usr/src/app/logs
       - ./src:/usr/src/app/src:ro  # Mount source code as read-only for debugging
-    env_file:
-      - .env
     environment:
       PORT: 5000
       MONGODB_URI: mongodb://mongodb:27017/text-analyzer
       NODE_ENV: development
+      GOOGLE_CLIENT_ID: 822984202167-07s5k2ni0gj296335k59k8hivdepq0uu.apps.googleusercontent.com
+      GOOGLE_CLIENT_SECRET: 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
+      JWT_SECRET: your-secret-for-jwt
       FRONTEND_URL: http://localhost:8080
       API_URL: http://localhost:5000
       THROTTLE_TTL: 60000
       THROTTLE_LIMIT: 10
       MONGODB_TEST_URI: mongodb://mongodb:27017/text-test
       TEST_JWT_SECRET: test-secret
+      TEST_GOOGLE_CLIENT_ID: 822984202167-07s5k2ni0gj296335k59k8hivdepq0uu.apps.googleusercontent.com
+      TEST_GOOGLE_CLIENT_SECRET: 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
       TEST_THROTTLE_TTL: 60000
       TEST_THROTTLE_LIMIT: 100
     depends_on:
