@@ -1,11 +1,11 @@
-import { useState, useRef } from "react";
-import { motion } from "framer-motion";
-import { Text, Hash, CircleDot, TextQuote, Search, BarChart2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { LoginDialog } from "./LoginDialog";
 import { textAnalysisService } from "@/services/textAnalysis.service";
+import { motion } from "framer-motion";
+import { BarChart2, CircleDot, Hash, Loader2, Search, Text, TextQuote } from "lucide-react";
+import { useRef, useState } from "react";
+import { LoginDialog } from "./LoginDialog";
 
 interface SpecificAnalysisResponse {
   statusCode: number;
@@ -91,9 +91,27 @@ export const TextAnalyzer = () => {
       }));
       // scrollToResults();
     } catch (error) {
+      console.error("Analysis error:", error);
+      
+      console.error("Analysis error:", error);
+  
+      // Extract error message from Axios error
+      let errorMessage = 'Failed to analyze text';
+      
+      // For Axios errors
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        // For general errors with message property
+        errorMessage = error.message;
+      }
+      
+      
       toast({
         title: "Error",
-        description: "Failed to analyze text",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -123,9 +141,25 @@ export const TextAnalyzer = () => {
       });
       scrollToResults();
     } catch (error) {
+      console.error("Analysis error:", error);
+  
+      // Extract error message from Axios error
+      let errorMessage = 'Failed to analyze text';
+      
+      // For Axios errors
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        // For general errors with message property
+        errorMessage = error.message;
+      }
+      
+      
       toast({
         title: "Error",
-        description: "Failed to analyze text",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
