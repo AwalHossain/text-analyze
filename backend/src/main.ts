@@ -1,8 +1,8 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,7 +14,7 @@ async function bootstrap() {
     .setTitle('Text Analyzer API')
     .setDescription('API for analyzing text')
     .setVersion('1.0')
-    .addServer('http://localhost:3000/', 'LocalDevelopment')
+    .addServer(process.env.API_URL || 'http://localhost:5000/', 'Production')
     .addTag('text-analyzer')
     .addBearerAuth(
       {
@@ -30,7 +30,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
-  SwaggerModule.setup('api-docs', app, document);
+  SwaggerModule.setup('api/docs', app, document);
   // use winston for logging
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER as string));
   // global validation pipe
@@ -49,7 +49,7 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  await app.listen(process.env.PORT || 3000, () => {
+  await app.listen(process.env.PORT || 5000, () => {
     Logger.log(`Server is running on port ${process.env.PORT}`);
   });
 }
