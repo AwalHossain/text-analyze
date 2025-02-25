@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Injectable } from '@nestjs/common';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ThrottlerGuard, ThrottlerRequest } from '@nestjs/throttler';
 
 @Injectable()
@@ -12,7 +11,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     const ip = req.ip || req.connection?.remoteAddress || 'anonymous';
 
     const endpoint = req.route?.path || req.url;
-    const tracker = `${ip}-${endpoint}-${req.method}`;
+    const tracker = `${ip}-${req.method}`;
 
     this.logger.debug(`Rate limit tracker: ${tracker}`);
     return Promise.resolve(tracker);
