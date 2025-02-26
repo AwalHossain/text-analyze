@@ -24,7 +24,9 @@ async function bootstrap() {
     .setDescription('API for analyzing text')
     .setVersion('1.0')
     .addServer(process.env.API_URL || 'http://localhost:5000/', 'Production')
-    .addTag('text-analyzer')
+    .addTag('Health Check', 'System health check endpoints')  
+    .addTag('Authentication', 'Authentication related endpoints')  
+    .addTag('Text Analyzer', 'Text analysis related endpoints')
     .addBearerAuth(
       {
         type: 'http',

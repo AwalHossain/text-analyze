@@ -1,9 +1,8 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { IUserRepository } from '../domain/interfaces/user.repository.interface';
-import { UserEntity } from '../domain/entities/user.entity';
-import { AuthResponseDto } from '../domain/dto/auth.dto';
-import { GoogleProfile } from '../domain/dto/auth.dto';
 import { JwtService } from '@nestjs/jwt';
+import { AuthResponseDto, GoogleProfile } from '../domain/dto/auth.dto';
+import { UserEntity } from '../domain/entities/user.entity';
+import { IUserRepository } from '../domain/interfaces/user.repository.interface';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +15,7 @@ export class AuthService {
 
   async findOrCreateUser(profile: GoogleProfile): Promise<AuthResponseDto> {
     let user = await this.userRepository.findByEmail(profile.email);
+
 
     if (!user) {
       user = await this.userRepository.create({
@@ -45,7 +45,6 @@ export class AuthService {
   async findUserById(id: string): Promise<UserEntity> {
     this.logger.log(id, 'check id');
     const user = await this.userRepository.findById(id);
-    console.log(user, 'check user');
 
     if (!user) {
       throw new NotFoundException('User not found');

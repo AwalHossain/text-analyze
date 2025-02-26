@@ -24,19 +24,16 @@ class MockThrottlerGuard implements CanActivate {
   private readonly limit = parseInt(process.env.TEST_THROTTLE_LIMIT || '3'); // Hard-coded limit for testing
 
   constructor() {
-    console.log('MockThrottlerGuard instantiated');
   }
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> {
     MockThrottlerGuard.requestCount++;
-    console.log(`Guard check - Request count: ${MockThrottlerGuard.requestCount}`);
     
     // Allow only 3 requests, then start throttling
     if (MockThrottlerGuard.requestCount <= this.limit) {
       return true;
     }
     
-    console.log('Throwing throttler exception');
     throw new ThrottlerException('Too many requests');
   }
 }
@@ -132,7 +129,6 @@ describe('Throttler (e2e)', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .send(sampleText);
 
-      console.log(`Request ${i + 1} status:`, response.status);
       expect(response.status).toBe(201);
     }
 
@@ -142,7 +138,6 @@ describe('Throttler (e2e)', () => {
       .set('Authorization', `Bearer ${authToken}`)
       .send(sampleText);
 
-    console.log('Throttled request status:', throttledResponse.status);
     expect(throttledResponse.status).toBe(HttpStatus.TOO_MANY_REQUESTS); // 429
   }, 10000);
 

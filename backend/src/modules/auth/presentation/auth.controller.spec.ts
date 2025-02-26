@@ -69,7 +69,7 @@ describe('AuthController', () => {
         access_token: mockAccessToken,
       });
 
-      process.env.FRONTEND_URL = 'http://localhost:8080';
+      // process.env.FRONTEND_URL = 'http://localhost:8080';
 
       await controller.googleAuthRedirect(mockReq as any, mockRes);
 

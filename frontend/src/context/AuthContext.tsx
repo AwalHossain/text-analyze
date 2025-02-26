@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import api from '../utils/axios';
 
 interface User {
@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const checkAuthStatus = async () => {
-    console.log("check big one");
+
 
     try {
       const token = localStorage.getItem('access_token');
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Verify token and get user data
       const response = await api.get('/auth/me');
-      console.log(response.data, "check");
+   
       setUser(response.data.user as User);
     } catch (error: any) {
         console.error('Auth check failed:', error?.response?.data || error);

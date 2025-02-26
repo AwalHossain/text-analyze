@@ -178,12 +178,10 @@ describe('TextAnalyzer (e2e)', () => {
 
       // Make initial requests
       const response = await makeRequest();
-      console.log(`Request status:`, response.body);
       expect(response.status).toBe(201);
 
       // Make throttled request
       const throttledResponse = await makeRequest();
-      console.log('Throttled request status:', throttledResponse.status);
       expect(throttledResponse.status).toBe(201);
     }, 30000);
 
