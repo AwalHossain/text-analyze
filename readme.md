@@ -7,8 +7,8 @@ Text Analyzer provides a set of robust APIs to analyze text properties including
 
 ### Live Demo
 - Frontend: [https://text-analyzer.vercel.app/](https://text-analyzer.vercel.app/)
-- Backend API: [https://your-backend-url.com](https://your-backend-url.com)
-- API Documentation: [https://your-backend-url.com/api/docs](https://your-backend-url.com/api/docs)
+- Backend API: [https://jellyfish-app-j4bzf.ondigitalocean.app](https://jellyfish-app-j4bzf.ondigitalocean.app)
+- API Documentation: [https://jellyfish-app-j4bzf.ondigitalocean.app/api/docs](https://jellyfish-app-j4bzf.ondigitalocean.app/api/docs)
 
 ## 🏗️ Architecture & Design Patterns
 
