@@ -1,4 +1,5 @@
-mongodb+srv://text-analyzer:akiAwwJ1IvNaBfSa@cluster0.ccg1noj.mongodb.net/?retryWrites=true&w=majority&appName=text-pick 107af40 feat(backend): add Swagger API tags for health check endpoint
+
+107af40 feat(backend): add Swagger API tags for health check endpoint
 squash fc95a45 feat(backend): add debug logging for user authentication flow
 squash 4021eda refactor(backend): remove redundant POST decorator in TextAnalyzerController
 squash d63d913 refactor(backend): remove debug console logs across multiple modules

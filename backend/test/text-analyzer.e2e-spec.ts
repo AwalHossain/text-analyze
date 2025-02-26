@@ -4,6 +4,8 @@ import * as request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
 import { Server } from 'http';
 
+import { TestThrottlerGuard } from '@common/guards/test-throttler.guard';
+import { CustomThrottlerGuard } from '@common/guards/throttler.guard';
 import { ConfigService } from '@nestjs/config';
 import { getConnectionToken, getModelToken } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
@@ -98,6 +100,8 @@ describe('TextAnalyzer (e2e)', () => {
             }
           }),
         })
+        .overrideGuard(CustomThrottlerGuard)
+        .useClass(TestThrottlerGuard)
         .compile();
       app = moduleFixture.createNestApplication();
       mongoConnection = moduleFixture.get<Connection>(getConnectionToken());
@@ -152,14 +156,12 @@ describe('TextAnalyzer (e2e)', () => {
       content: 'This is a test text.',
     };
     it('should return 401 when analyzing text without token', async () => {
-      // for (let i = 0; i < 12; i++) {
       const response = await request(app.getHttpServer() as Server)
         .post('/api/analyze/text')
         .send({
           content: 'This is a test text.',
         });
       expect(response.status).toBe(401);
-      // }
     });
 
     it('should enforce rate limiting after maximum requests', async () => {
@@ -171,8 +173,6 @@ describe('TextAnalyzer (e2e)', () => {
           .post(endpoint)
           .set('Authorization', `Bearer ${authToken}`)
           .send({ content: 'This is a test text.' });
-
-        // await new Promise((resolve) => setTimeout(resolve, 100)); // Add delay
         return response;
       };
 
@@ -258,7 +258,6 @@ describe('TextAnalyzer (e2e)', () => {
       expect(response.status).toBe(401);
     });
 
-    // get all token of a user
     it('should return all tokens of a user', async () => {
       const response = await request(app.getHttpServer() as Server)
         .get('/api/analyze/all')
