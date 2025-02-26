@@ -29,9 +29,9 @@ describe('CustomThrottlerGuard', () => {
           useValue: {
             get: jest.fn((key, defaultValue) => {
               const config = {
-                'THROTTLE_LIMIT': 5,
-                'THROTTLE_TTL': 10000, // 10 seconds for faster testing
-                'PENALTY_TTL': 10000, // 10 seconds for faster testing
+                'throttler.limit': 5,
+                'throttler.ttl': 10000, // 10 seconds for faster testing
+                'throttler.penaltyMs': 10000, // 10 seconds for faster testing
               };
               return config[key] !== undefined ? config[key] : defaultValue;
             }),
@@ -42,6 +42,13 @@ describe('CustomThrottlerGuard', () => {
 
     guard = module.get<CustomThrottlerGuard>(CustomThrottlerGuard);
     configService = module.get<ConfigService>(ConfigService);
+  });
+
+  afterEach(() => {
+    // Clear any intervals
+    if (guard['cleanupInterval']) {
+      clearInterval(guard['cleanupInterval']);
+    }
   });
 
   it('should be defined', () => {

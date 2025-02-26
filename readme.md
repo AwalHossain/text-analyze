@@ -1,9 +1,14 @@
-# Text Harmony Analyzer
+# [Text Analyzer](https://text-analyzer.vercel.app/)
 
 A sophisticated text analysis tool built with NestJS and React, featuring real-time text analysis, user authentication, and comprehensive reporting. 
 
 ## 🔍 Project Overview
 Text Analyzer provides a set of robust APIs to analyze text properties including word count, character count, sentence count, paragraph count, and longest words. The application implements user authentication via Google OAuth 2.0, ensuring only authorized users can access the analysis endpoints. All text analyses are stored in a database, allowing users to review their history.
+
+### Live Demo
+- Frontend: [https://text-analyzer.vercel.app/](https://text-analyzer.vercel.app/)
+- Backend API: [https://your-backend-url.com](https://your-backend-url.com)
+- API Documentation: [https://your-backend-url.com/api/docs](https://your-backend-url.com/api/docs)
 
 ## 🏗️ Architecture & Design Patterns
 
