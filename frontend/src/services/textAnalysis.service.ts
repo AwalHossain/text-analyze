@@ -40,7 +40,7 @@ class TextAnalysisService {
       });
       return response.data;
     } catch (error: any) {
-      console.log(error.response,"error from the front", error);
+      // console.log(error.response,"error from the front", error);
       throw error;
     }
 

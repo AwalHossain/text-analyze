@@ -27,12 +27,7 @@ export class TextAnalyzerController {
   private readonly logger = new Logger(TextAnalyzerController.name);
   constructor(private readonly textAnalerService: TextAnalyzerService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create and analyze a new text' })
-  @ApiResponse({
-    status: 429,
-    description: 'Too Many Requests - Rate limit exceeded',
-  })
+
   @ApiBody({ type: CreateTextDto })
   @ApiBearerAuth('JWT')
   @ApiResponse({
@@ -143,8 +138,6 @@ export class TextAnalyzerController {
       content,
       userId,
     );
-    console.log('paragraphCount', paragraphCount);
-    this.logger.log('paragraphCount', paragraphCount);
     return {
       statusCode: HttpStatus.OK,
       message: 'The paragraphs in the text have been successfully analyzed.',
@@ -216,7 +209,6 @@ export class TextAnalyzerController {
   async getAllAnalyzeByUserId(@User('userId') userId: string) {
     const allAnalyze =
       await this.textAnalerService.getAllAnalyzeByUserId(userId);
-    console.log('allAnalyze', allAnalyze);
     return {
       statusCode: HttpStatus.OK,
       message: 'The analyze has been successfully retrieved.',

@@ -108,10 +108,8 @@ export class TextAnalyzerService {
 
   async getParagraphCount(text: string, userId: string): Promise<number> {
     // Add debug logging
-    console.log('Original text:', text);
 
     const normalizedText = TextUtils.normalizeContent(text);
-    console.log('Normalized text:', normalizedText);
 
     const cacheKey = TextUtils.generateCacheKey(userId, normalizedText);
     const cachedStats = await this.cacheManager.get<TextStats>(cacheKey);
@@ -131,7 +129,6 @@ export class TextAnalyzerService {
     const statsToCache: TextStats = await textAnalyzer.getAnalyzeText();
 
     await this.cacheManager.set(cacheKey, statsToCache);
-    console.log('Stats computed after cache:', statsToCache.paragraphCount);
     return statsToCache.paragraphCount;
   }
 
@@ -173,7 +170,6 @@ export class TextAnalyzerService {
 
   async getAllAnalyzeByUserId(userId: string): Promise<Array<TextDocument>> {
     const allAnalyze = await this.textRepository.findAllByUserId(userId);
-    console.log(allAnalyze, 'allAnalyze for user `{userId}`', userId);
     this.logger.log(`All analyze for user ${userId}:`, allAnalyze);
     return allAnalyze;
   }

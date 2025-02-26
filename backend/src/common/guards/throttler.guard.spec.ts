@@ -159,7 +159,6 @@ describe('CustomThrottlerGuard', () => {
     try {
       // Should be allowed again after penalty time
       const result = await guard.canActivate(context);
-      console.log('result fourth', result);
       expect(result).toBe(true);
     } finally {
       // Restore original Date.now
@@ -177,7 +176,6 @@ describe('CustomThrottlerGuard', () => {
     } as unknown as ExecutionContext;
     
     const result = await guard.canActivate(context);
-    console.log('result fifth no IP address', result);
     expect(result).toBe(true);
   });
 
@@ -214,7 +212,6 @@ describe('CustomThrottlerGuard', () => {
   }
     // Second IP should still be allowed
     const newresult = await guard.canActivate(context2);
-    console.log('result seventh should be allowed for second IP', newresult);
     expect(newresult).toBe(true);
   });
 }); 

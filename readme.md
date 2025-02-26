@@ -4,7 +4,7 @@ A sophisticated text analysis tool built with NestJS and React, featuring real-t
 
 ## 🔍 Project Overview
 
-Text Harmony Analyzer provides a set of robust APIs to analyze text properties including word count, character count, sentence count, paragraph count, and longest words. The application implements user authentication via Google OAuth 2.0, ensuring only authorized users can access the analysis endpoints. All text analyses are stored in a database, allowing users to review their history.
+Text Analyzer provides a set of robust APIs to analyze text properties including word count, character count, sentence count, paragraph count, and longest words. The application implements user authentication via Google OAuth 2.0, ensuring only authorized users can access the analysis endpoints. All text analyses are stored in a database, allowing users to review their history.
 
 ## 🏗️ Architecture & Design Patterns
 
@@ -35,68 +35,7 @@ NestJS was chosen over plain Express.js for several key reasons:
 
 While NestJS is built on top of Express.js (providing all Express capabilities), it adds a robust architectural framework that makes development more maintainable and testable.
 
-## 🐳 Quick Start with Docker (Recommended for Examiners)
 
-### Option 1: One-Click Setup (Easiest)
-
-We've provided scripts that set up everything automatically:
-
-```bash
-
-### Option 1: Manual Docker Setup
-
-```bash
-# Navigate to the backend directory
-cd backend
-
-# Start the application
-docker-compose up
-
-# The API will be available at http://localhost:5000
-# Swagger documentation at http://localhost:5000/api/docs
-```
-
-This will start the backend service with all configurations pre-set. The Docker setup includes:
-- NestJS backend service with all dependencies
-- Environment variables pre-configured
-- Volume mapping for logs and code
-- Health check endpoint
-
-## 🧪 Testing Approach
-
-This project was developed using **Test-Driven Development (TDD)**:
-
-1. **Write the test first**: Define the expected behavior
-2. **Watch it fail**: Ensure the test fails correctly
-3. **Implement the feature**: Write code to make the test pass
-4. **Refactor**: Improve the code while keeping tests passing
-
-### Running Tests
-
-#### Option 1: Using Docker (Recommended)
-
-```bash
-# Run all tests in Docker
-docker-compose run --rm backend npm run test
-
-# Run e2e tests
-docker-compose run --rm backend npm run test:e2e
-
-# Generate coverage report
-docker-compose run --rm backend npm run test:cov
-```
-
-#### Option 2: Running Locally
-
-```bash
-
-
-# Or manually
-npm run test           # Run unit tests
-npm run test:watch     # Run tests in watch mode
-npm run test:cov       # Run tests with coverage report
-npm run test:e2e       # Run end-to-end tests
-```
 
 ## 🔒 Security & API Protection
 
@@ -195,6 +134,52 @@ TEST_THROTTLE_LIMIT=5
 npm run start:dev
 ```
 
+
+
+## 🧪 Testing Approach
+
+This project was developed using **Test-Driven Development (TDD)**:
+
+1. **Write the test first**: Define the expected behavior
+2. **Watch it fail**: Ensure the test fails correctly
+3. **Implement the feature**: Write code to make the test pass
+4. **Refactor**: Improve the code while keeping tests passing
+
+### Running Tests Locally
+
+```bash
+npm run test           # Run unit tests
+npm run test:watch     # Run tests in watch mode
+npm run test:cov       # Run tests with coverage report
+npm run test:e2e       # Run end-to-end tests
+```
+
+
+## 🐳 Quick Start with Docker (Recommended for Examiners)
+
+### Option 1: One-Click Setup (Easiest)
+
+We've provided scripts that set up everything automatically:
+
+```bash
+Manual Docker Setup
+
+# Navigate to the backend directory
+cd backend
+
+# Start the application
+docker-compose up
+
+# The API will be available at http://localhost:5000
+# Swagger documentation at http://localhost:5000/api/docs
+```
+
+This will start the backend service with all configurations pre-set. The Docker setup includes:
+- NestJS backend service with all dependencies
+- Environment variables pre-configured
+- Volume mapping for logs and code
+- Health check endpoint
+
 ### Frontend Setup
 
 1. Navigate to frontend directory
@@ -214,7 +199,6 @@ npm install
 
 ```bash
 VITE_API_URL=http://localhost:5000/api
-VITE_GOOGLE_CLIENT_ID=your-google-client-id
 ```
 
 3. Start the frontend server

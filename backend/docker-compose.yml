@@ -7,7 +7,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./logs:/usr/src/app/logs
+      - log_data:/usr/src/app/logs
       - ./src:/usr/src/app/src:ro  # Mount source code as read-only for debugging
     environment:
       PORT: 5000
@@ -56,3 +56,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  log_data:
