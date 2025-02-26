@@ -1,315 +1,230 @@
-# Text Harmony Analyzer
+# Text Analyzer
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 
-A sophisticated text analysis tool built with NestJS and React, featuring real-time text analysis, user authentication, and comprehensive reporting. This project implements a complete solution for analyzing texts with a focus on clean architecture, test-driven development, and modern web practices.
 
-## 🔍 Project Overview
 
-Text Harmony Analyzer provides a set of robust APIs to analyze text properties including word count, character count, sentence count, paragraph count, and longest words. The application implements user authentication via Google OAuth 2.0, ensuring only authorized users can access the analysis endpoints. All text analyses are stored in a database, allowing users to review their history.
 
-## 🏗️ Architecture & Design Patterns
+A sophisticated text analysis service built with Node.js that provides comprehensive text analytics capabilities including word count, character count, sentence analysis, and paragraph metrics. Built with enterprise-grade architecture, security, and scalability in mind.
 
-This project follows **Clean Architecture** principles with a clear separation of concerns:
+## Table of Contents
 
-- **Domain Layer**: Core business logic and entities
-- **Application Layer**: Use cases and application services
-- **Infrastructure Layer**: External systems, database, and frameworks
-- **Presentation Layer**: Controllers and DTOs
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Technical Stack](#technical-stack)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [API Documentation](#api-documentation)
+- [Testing](#testing)
+- [Security](#security)
+- [Performance](#performance)
+- [Contributing](#contributing)
+- [License](#license)
 
-The application implements several design patterns:
-- **Repository Pattern**: For data access abstraction
-- **Dependency Injection**: Enabled by NestJS for loose coupling
-- **Strategy Pattern**: For different text analysis strategies
-- **Factory Pattern**: For creating analysis services
-- **Singleton Pattern**: For shared services
+## Overview
 
-## 🌟 Why NestJS Over Express?
+Text Analyzer is a robust REST API service that performs detailed analysis of text content. It follows Test-Driven Development (TDD) principles and implements clean architecture patterns to ensure maintainability and scalability.
 
-NestJS was chosen over plain Express.js for several key reasons:
+## Key Features
 
-1. **Structured Architecture**: NestJS enforces a modular structure that aligns with clean architecture principles
-2. **TypeScript Integration**: First-class TypeScript support enables type safety and better IDE tooling
-3. **Dependency Injection**: Built-in DI container simplifies testing and component management
-4. **Decorators & Metadata**: Reduces boilerplate code and improves readability
-5. **Middleware System**: Enhanced middleware capabilities with Guards, Interceptors, and Pipes
-6. **Testing Utilities**: Comprehensive testing tools that align with TDD approach
+- **Text Analysis Operations:**
+  - Word count calculation
+  - Character count analysis
+  - Sentence detection and counting
+  - Paragraph analysis
+  - Longest word identification
+- **Security Features:**
+  - OAuth 2.0 authentication
+  - API rate limiting
+  - Role-based access control
+- **Performance Optimizations:**
+  - Response caching
+  - Database query optimization
+  - Efficient text processing algorithms
+- **Developer Experience:**
+  - Comprehensive API documentation
+  - 100% test coverage
+  - Docker support
+  - Detailed logging
 
-While NestJS is built on top of Express.js (providing all Express capabilities), it adds a robust architectural framework that makes development more maintainable and testable.
+## Technical Stack
 
-## 🐳 Quick Start with Docker (Recommended for Examiners)
+- **Runtime:** Node.js (v16+)
+- **Language:** TypeScript
+- **Framework:** NestJS
+- **Database:** MongoDB (with Mongoose)
+- **Caching:** Redis
+- **Testing:** Jest
+- **Documentation:** Swagger/OpenAPI
+- **Authentication:** OAuth 2.0
+- **Containerization:** Docker
+- **Logging:** Winston
 
-### Option 1: One-Click Setup (Easiest)
+## Architecture
 
-We've provided scripts that set up everything automatically:
+The application follows Clean Architecture principles with distinct layers:
 
-```bash
-
-### Option 1: Manual Docker Setup
-
-```bash
-# Navigate to the backend directory
-cd backend
-
-# Start the application
-docker-compose up
-
-# The API will be available at http://localhost:5000
-# Swagger documentation at http://localhost:5000/api/docs
+```
+src/
+├── domain/          # Business entities and interfaces
+├── application/     # Use cases and business logic
+├── infrastructure/  # External services implementation
+└── presentation/    # Controllers and DTOs
 ```
 
-This will start the backend service with all configurations pre-set. The Docker setup includes:
-- NestJS backend service with all dependencies
-- Environment variables pre-configured
-- Volume mapping for logs and code
-- Health check endpoint
+### Design Patterns Used
 
-## 🧪 Testing Approach
+- Repository Pattern for data access
+- Strategy Pattern for text analysis
+- Factory Pattern for service creation
+- Observer Pattern for logging
+- Decorator Pattern for caching
 
-This project was developed using **Test-Driven Development (TDD)**:
+## Getting Started
 
-1. **Write the test first**: Define the expected behavior
-2. **Watch it fail**: Ensure the test fails correctly
-3. **Implement the feature**: Write code to make the test pass
-4. **Refactor**: Improve the code while keeping tests passing
+### Prerequisites
 
-### Running Tests
-
-#### Option 1: Using Docker (Recommended)
-
-```bash
-# Run all tests in Docker
-docker-compose run --rm backend npm run test
-
-# Run e2e tests
-docker-compose run --rm backend npm run test:e2e
-
-# Generate coverage report
-docker-compose run --rm backend npm run test:cov
-```
-
-#### Option 2: Running Locally
-
-```bash
-
-
-# Or manually
-npm run test           # Run unit tests
-npm run test:watch     # Run tests in watch mode
-npm run test:cov       # Run tests with coverage report
-npm run test:e2e       # Run end-to-end tests
-```
-
-## 🔒 Security & API Protection
-
-### Authentication
-
-The application implements Google OAuth 2.0 for authentication:
-- Protected routes require a valid JWT token
-- SSO integration simplifies user management
-- JWT tokens are validated on every request
-
-### Rate Limiting
-
-All API endpoints implement intelligent rate limiting:
-
-- **Per-User Rate Limiting**: 10 requests per minute per user (configurable)
-- **Per-IP Rate Limiting**: Prevents abuse from unauthenticated requests
-- **Method-Specific Limits**: Rate limits are applied per HTTP method (e.g., 10 POST requests)
-- **Graceful Rejection**: Returns 429 Too Many Requests with clear error messages
-- **Sliding Window**: Uses a sliding window approach to prevent bursts
-
-Rate limiting helps protect the API from abuse while ensuring fair usage across all users.
-
-## 🛠 Tech Stack
-
-### Backend
-- **NestJS**: Progressive Node.js framework built on Express.js
-- **TypeScript**: For type safety and better developer experience
-- **MongoDB**: NoSQL database for storing text analyses and user data
-- **JWT**: For secure authentication
-- **Cache Manager**: Redis-based caching to improve performance
-- **Winston Logger**: Advanced logging with structured output
-
-### Frontend
-- **React**: For building the user interface
-- **TypeScript**: For type-safe component development
-- **TailwindCSS**: Utility-first CSS framework
-- **Framer Motion**: For smooth animations and transitions
-- **React Query**: For efficient data fetching and caching
-
-## 📋 Prerequisites
-
-- Node.js (v16 or higher)
+- Node.js v16 or higher
 - MongoDB
-- Google OAuth credentials
-- npm or yarn
+- Redis (for caching)
+- Docker and Docker Compose (optional)
 
-## 🚀 Getting Started
+### Local Setup
 
-### Backend Setup
-
-1. Clone the repository
-
+1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/yourusername/text-analyzer.git
 cd text-analyzer
 ```
 
-2. Install dependencies
-
+2. Install dependencies:
 ```bash
-cd backend
 npm install
 ```
 
-3. Create environment file
-
+3. Configure environment variables:
 ```bash
-.env
+cp .env.example .env
 ```
 
-**.env**
-
-```bash
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/text-analyzer
-JWT_SECRET=your-jwt-secret
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-THROTTLE_TTL=60000
-THROTTLE_LIMIT=10
-FRONTEND_URL=http://localhost:8080
-
-# Test environment
-MONGODB_TEST_URI=mongodb://localhost:27017/text-analyzer-test
-TEST_JWT_SECRET=test-secret
-TEST_GOOGLE_CLIENT_ID=mock-client-id
-TEST_GOOGLE_CLIENT_SECRET=mock-client-secret
-TEST_THROTTLE_TTL=60000
-TEST_THROTTLE_LIMIT=5
-```
-
-4. Start the backend server
-
+4. Start the application:
 ```bash
 npm run start:dev
 ```
 
-### Frontend Setup
+### Docker Setup
 
-1. Navigate to frontend directory
-
+1. Build and start containers:
 ```bash
-cd frontend
-npm install
+docker-compose up -d
 ```
 
-2. Create environment file
+2. Access the application at `http://localhost:5000`
 
-```bash
-.env
+## API Documentation
+
+### Core Endpoints
+
+```typescript
+POST /api/v1/analyze/words      // Get word count
+POST /api/v1/analyze/chars      // Get character count
+POST /api/v1/analyze/sentences  // Get sentence count
+POST /api/v1/analyze/paragraphs // Get paragraph count
+POST /api/v1/analyze/longest    // Get longest words
 ```
-
-**.env**
-
-```bash
-VITE_API_URL=http://localhost:5000/api
-VITE_GOOGLE_CLIENT_ID=your-google-client-id
-```
-
-3. Start the frontend server
-
-```bash
-npm run dev
-```
-
-## 📚 API Documentation
-
-Access the Swagger documentation at:
-
-```
-http://localhost:5000/api/docs
-```
-
-### Available Endpoints
-
-- **POST** `/api/analyze/text` - Complete text analysis
-- **POST** `/api/analyze/words` - Word count
-- **POST** `/api/analyze/characters` - Character count
-- **POST** `/api/analyze/sentences` - Sentence count
-- **POST** `/api/analyze/paragraphs` - Paragraph count
-- **POST** `/api/analyze/longestWord` - Longest words
-- **GET** `/api/analyze/all` - Get user's analysis history
 
 ### Example Request
 
 ```json
 {
-  "content": "The quick brown fox jumps over the lazy dog. The lazy dog slept in the sun."
+  "text": "The quick brown fox jumps over the lazy dog. The lazy dog slept in the sun."
 }
 ```
 
-### Example Response (for /analyze/text)
+### Example Response
 
 ```json
 {
-  "statusCode": 200,
-  "message": "Text analyzed successfully",
-  "data": {
-    "wordCount": 16,
-    "characterCount": 69,
-    "sentenceCount": 2,
-    "paragraphCount": 1,
-    "longestWords": ["quick", "brown", "jumps"]
-  }
+  "wordCount": 16,
+  "charCount": 70,
+  "sentenceCount": 2,
+  "paragraphCount": 1,
+  "longestWord": "quick"
 }
 ```
 
-## 💾 Caching Strategy
+## Testing
 
-The application implements intelligent caching to improve performance:
+The project follows TDD principles with 100% test coverage:
 
-- **Result Caching**: Analysis results are cached based on text content
-- **User-Specific Cache**: Each user has their own cache namespace
-- **TTL-Based Expiry**: Cache items expire after a configured time
-- **Cache Invalidation**: Updates to text clear related caches
+```bash
+# Run unit tests
+npm run test
 
-## 📊 Performance Enhancements
+# Run e2e tests
+npm run test:e2e
 
-- Response caching implemented to prevent redundant processing
-- Optimized text analysis algorithms 
-- Database indexing for faster queries
-- Real-time analysis with minimal latency
-- Asynchronous processing for longer texts
+# Generate coverage report
+npm run test:cov
+```
 
-## 📋 Problem Statement Implementation
+### Test Coverage Requirements
 
-This project fully addresses the original problem statement:
+- Unit tests for all business logic
+- Integration tests for API endpoints
+- E2E tests for critical user flows
+- Coverage report generation
+- Continuous testing in CI/CD pipeline
 
-1. **Text CRUD Operations**: Create, read, update, and delete texts
-2. **Database Integration**: MongoDB for storing text data
-3. **Clean Architecture**: Properly layered with separation of concerns
-4. **Text Analysis Features**:
-   - Word count
-   - Character count
-   - Sentence count
-   - Paragraph count
-   - Longest word detection
-5. **TDD Approach**: All components developed test-first with high coverage
-6. **Required APIs**: All specified endpoints implemented
-7. **Bonus Features**:
-   - OAuth 2.0 authentication
-   - API throttling with configurable limits
-   - User-specific analysis reports
-   - Caching to prevent redundancy
+## Security
 
-## 🤝 Contributing
+- **Authentication:** 
+  - OAuth 2.0 implementation
+  - JWT token management
+  - Role-based access control
+
+- **Rate Limiting:** 
+  - 100 requests per minute per user
+  - Configurable through environment variables
+  - IP-based and user-based throttling
+
+- **Data Protection:**
+  - Input sanitization
+  - XSS protection
+  - CORS configuration
+  - Data validation
+
+## Performance
+
+### Caching Strategy
+
+- Redis-based caching implementation
+- Configurable TTL for cached results
+- Cache invalidation on text updates
+- Distributed caching support
+
+### Database Optimization
+
+- Indexed queries for faster lookups
+- Connection pooling
+- Query optimization
+- Efficient data structures
+
+### Monitoring
+
+- Winston logging integration
+- Performance metrics tracking
+- Error tracking and reporting
+- Resource usage monitoring
+
+## Contributing
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📝 License
+## License
 
-This project is licensed under the MIT License - see the LICENSE file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 

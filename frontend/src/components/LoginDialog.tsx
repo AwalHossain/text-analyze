@@ -34,7 +34,7 @@ export const LoginDialog = ({
 
     window.addEventListener('message', (event) => {
       // if (event.origin !== import.meta.env.VITE_API_URL) return;
-      console.log(event.data, 'event.data');
+
       if (event.data.type === 'AUTH_SUCCESS') {
         const authResponse = event.data.data;
         

@@ -1,23 +1,18 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 import { Text } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { Link } from "react-router-dom";
 import { LoginDialog } from "./LoginDialog";
-import { NavLink, Link } from "react-router-dom";
 
 interface User {
   id: string;         
@@ -43,8 +38,7 @@ export const Navbar = () => {
     setShowLoginDialog(true);
   };
 
-  console.log(user, 'check user from navbar');
-  
+
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     window.location.href = '/';

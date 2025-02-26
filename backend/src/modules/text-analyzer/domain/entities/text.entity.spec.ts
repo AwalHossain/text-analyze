@@ -110,7 +110,6 @@ describe('TextAnalyzerEntity', () => {
           userId,
         );
         const count = await multiParagraph.getParagraphCount();
-        console.log(count, 'count');
         expect(count).toBe(3);
       });
     });

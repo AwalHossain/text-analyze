@@ -78,8 +78,7 @@ export const TextAnalyzer = () => {
         type: type as 'words' | 'characters' | 'sentences' | 'paragraphs' | 'longestWord' 
       });
       const result = response.data;
-      console.log(result,"result");
-      
+  
       setActiveResult(type);
       setResults(prev => ({
         ...prev,
@@ -130,7 +129,7 @@ export const TextAnalyzer = () => {
       setLoading('text');
       const response = await textAnalysisService.analyzeText({ content: text });
       const result = response as FullAnalysisResponse;
-      console.log(result,"result");
+
       setActiveResult("text");
       setResults({
         words: result.data.wordCount,

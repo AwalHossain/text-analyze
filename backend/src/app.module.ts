@@ -23,7 +23,6 @@ import { TextAnalyzerModule } from './modules/text-analyzer/text-analyzer.module
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        // Add console.log to debug
         const ttl = parseInt(config.getOrThrow('throttler.ttl') || '60000', 10);
         const limit = parseInt(
           config.getOrThrow('throttler.limit') || '10',

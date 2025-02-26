@@ -1,8 +1,8 @@
+import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { TextAnalyzerService } from '../../application/services/text-analyer.service';
 import { TextAnalyzerController } from './text-analyzer.controller';
-import { HttpStatus } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 describe('TextAnalyzerController', () => {
   let controller: TextAnalyzerController;
 
@@ -74,7 +74,6 @@ describe('TextAnalyzerController', () => {
       mockTextAnalyzerService.getWordCount.mockResolvedValue(mockWordCount);
 
       const result = await controller.getWordCount(sampleText, userId);
-      console.log(result, 'result from controller');
 
       expect(result).toEqual({
         statusCode: HttpStatus.OK,

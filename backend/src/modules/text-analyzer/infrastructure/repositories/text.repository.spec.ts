@@ -1,8 +1,8 @@
-import { Model } from 'mongoose';
-import { TextRepository } from './text.repository';
-import { TextDocument } from '../schemas/text.schema';
-import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
+import { Test, TestingModule } from '@nestjs/testing';
+import { Model } from 'mongoose';
+import { TextDocument } from '../schemas/text.schema';
+import { TextRepository } from './text.repository';
 
 describe('TextRepository', () => {
   let repository: TextRepository;
@@ -55,10 +55,7 @@ describe('TextRepository', () => {
         mockStats,
       );
       // Different ways to inspect the result:
-      console.log('Result:', result); // Basic logging
-      console.dir(result, { depth: null }); // Detailed object inspection
-      console.log('Result structure:', JSON.stringify(result, null, 2)); // Pretty printed JSON
-
+   
       expect(result).toEqual(mockCreatedText);
       expect(mockTextModel.create).toHaveBeenCalledWith({
         content: 'Hello world',
@@ -96,7 +93,7 @@ describe('TextRepository', () => {
       mockTextModel.find.mockResolvedValue(mockText);
 
       const result = await repository.findAllByUserId('user123');
-      console.log(result, 'check');
+      
 
       expect(result).toEqual(mockText);
       expect(mockTextModel.find).toHaveBeenCalledWith({ userId: 'user123' });
