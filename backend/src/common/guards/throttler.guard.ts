@@ -22,7 +22,7 @@ export class CustomThrottlerGuard implements CanActivate {
   constructor(
     private readonly configService: ConfigService,
   ) {
-    this.limit = this.configService.get<number>('THROTTLE_LIMIT', 10);
+    this.limit = this.configService.get<number>('THROTTLE_LIMIT', 15);
     this.ttl = this.configService.get<number>('THROTTLE_TTL', 60000);
     this.penaltyMs = 10000; // Fixed 10 seconds penalty
     this.logger.log(`Rate limiter initialized with limit: ${this.limit}, ttl: ${this.ttl}ms`);
@@ -39,26 +39,28 @@ export class CustomThrottlerGuard implements CanActivate {
     const now = Date.now();
     let record = this.ipHitMap.get(ip);
 
-    // Clear expired records
-    if (record?.blockedUntil && record.blockedUntil < now) {
-        // If block time has expired, remove the record completely
-        this.ipHitMap.delete(ip);
+    // If record exists but TTL has expired, reset the record
+    if (record && record.resetTime <= now) {
+        this.logger.log(`TTL expired for ${ip}, resetting count`);
         record = undefined;
+        this.ipHitMap.delete(ip);
     }
 
-    if (record?.resetTime && record.resetTime < now) {
-        // If TTL has expired, remove the record completely
+    // Clear blocked records if block time has expired
+    if (record?.blockedUntil && record.blockedUntil < now) {
+        this.logger.log(`Block time expired for ${ip}, removing block`);
         this.ipHitMap.delete(ip);
         record = undefined;
     }
 
     // If no record exists, create a new one
     if (!record) {
-        this.ipHitMap.set(ip, {
+        record = {
             hits: 1,
             resetTime: now + this.ttl,
-        });
-        this.logger.log(`Request count for ${ip}: 1/${this.limit}`);
+        };
+        this.ipHitMap.set(ip, record);
+        this.logger.log(`New record for ${ip}: 1/${this.limit}, expires at ${new Date(record.resetTime).toLocaleString()}`);
         return true;
     }
 
@@ -75,17 +77,16 @@ export class CustomThrottlerGuard implements CanActivate {
 
     // Increment hits
     record.hits += 1;
-    this.logger.log(`Request count for ${ip}: ${record.hits}/${this.limit}`);
+    this.logger.log(`Request count for ${ip}: ${record.hits}/${this.limit}, resets at ${new Date(record.resetTime).toLocaleString()}`);
 
     // Check if limit is exceeded
     if (record.hits > this.limit) {
-        // Set block time for 10 seconds from now
-        record.blockedUntil = now + 10000; // 10 seconds in milliseconds
+        record.blockedUntil = now + this.penaltyMs;
         this.logger.warn(
             `Rate limit exceeded for ${ip}: ${record.hits}/${this.limit}. Blocked until: ${new Date(record.blockedUntil).toLocaleString()}`,
         );
         throw new ThrottlerException(
-            `Too many requests. Try again in 10 seconds.`,
+            `Too many requests. Try again in ${this.penaltyMs / 1000} seconds.`,
         );
     }
 
@@ -95,10 +96,15 @@ export class CustomThrottlerGuard implements CanActivate {
   // Add cleanup method
   private cleanup() {
     const now = Date.now();
+    let cleaned = 0;
     for (const [ip, record] of this.ipHitMap.entries()) {
-        if ((record.resetTime < now) || (record.blockedUntil && record.blockedUntil < now)) {
+        if ((record.resetTime <= now) || (record.blockedUntil && record.blockedUntil < now)) {
             this.ipHitMap.delete(ip);
+            cleaned++;
         }
+    }
+    if (cleaned > 0) {
+        this.logger.debug(`Cleaned up ${cleaned} expired records`);
     }
   }
 }
