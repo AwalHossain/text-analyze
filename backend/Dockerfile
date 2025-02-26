@@ -1,5 +1,5 @@
 # Build Stage
-FROM node:20 as builder
+FROM node:18-alpine as builder
 
 WORKDIR /usr/src/app
 
@@ -16,15 +16,12 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:20-slim
+FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
-# System dependencies
-RUN apt-get update -y && \
-    apt-get install -y openssl libssl1.1 && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Install production dependencies
+RUN apk add --no-cache openssl
 
 # Create log directory in standard location
 RUN mkdir -p /usr/src/app/logs && \
