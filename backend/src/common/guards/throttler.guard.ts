@@ -25,9 +25,9 @@ export class CustomThrottlerGuard implements CanActivate {
   constructor(
     private readonly configService: ConfigService,
   ) {
-    this.limit = this.configService.get<number>('THROTTLE_LIMIT', 10);
-    this.ttl = this.configService.get<number>('THROTTLE_TTL', 60000);
-    this.penaltyMs = 10000; // Fixed 10 seconds penalty
+    this.limit = this.configService.get<number>('throttler.limit', 10);
+    this.ttl = this.configService.get<number>('throttler.ttl', 60000);
+    this.penaltyMs = this.configService.get<number>('throttler.penaltyMs', 10000);
     this.logger.log(`Rate limiter initialized with limit: ${this.limit}, ttl: ${this.ttl}ms`);
     
     // Run cleanup every 30 seconds
