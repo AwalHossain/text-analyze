@@ -3,8 +3,7 @@
 A sophisticated text analysis tool built with NestJS and React, featuring real-time text analysis, user authentication, and comprehensive reporting. 
 
 ## 🔍 Project Overview
-
-Text Analyzer provides a set of robust APIs to analyze text properties including word count, character count, sentence count, paragraph count, and longest words. The application implements user authentication via Google OAuth 2.0, ensuring only authorized users can access the analysis endpoints. Only the full text analyses are stored in a database, allowing users to review their history.
+Text Analyzer provides a set of robust APIs to analyze text properties including word count, character count, sentence count, paragraph count, and longest words. The application implements user authentication via Google OAuth 2.0, ensuring only authorized users can access the analysis endpoints. All text analyses are stored in a database, allowing users to review their history.
 
 ## 🏗️ Architecture & Design Patterns
 
@@ -171,10 +170,9 @@ cd backend
 # Start the application
 docker-compose up
 
+
 # To Check docker logs
 docker-compose logs -f backend
-
-
 
 # The API will be available at http://localhost:5000
 # Swagger documentation at http://localhost:5000/api/docs
