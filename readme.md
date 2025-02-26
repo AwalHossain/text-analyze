@@ -6,7 +6,7 @@ A sophisticated text analysis tool built with NestJS and React, featuring real-t
 Text Analyzer provides a set of robust APIs to analyze text properties including word count, character count, sentence count, paragraph count, and longest words. The application implements user authentication via Google OAuth 2.0, ensuring only authorized users can access the analysis endpoints. All text analyses are stored in a database, allowing users to review their history.
 
 ### Live Demo
-- Frontend: [https://text-analyzer.vercel.app/](https://text-analyzer.vercel.app/)
+- Frontend: [https://tet-analyzer.vercel.app/](https://tet-analyzer.vercel.app/)
 - Backend API: [https://jellyfish-app-j4bzf.ondigitalocean.app](https://jellyfish-app-j4bzf.ondigitalocean.app)
 - API Documentation: [https://jellyfish-app-j4bzf.ondigitalocean.app/api/docs](https://jellyfish-app-j4bzf.ondigitalocean.app/api/docs)
 
