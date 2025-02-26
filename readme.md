@@ -115,7 +115,7 @@ JWT_SECRET=your-jwt-secret
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 THROTTLE_TTL=60000
-THROTTLE_LIMIT=10
+THROTTLE_LIMIT=12
 FRONTEND_URL=http://localhost:8080
 API_URL=http://localhost:5000
 
