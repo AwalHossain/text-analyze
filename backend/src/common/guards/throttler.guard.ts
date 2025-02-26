@@ -7,104 +7,139 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { ThrottlerException } from '@nestjs/throttler';
 
+interface ThrottleRecord {
+  hits: number;
+  windowStart: number;
+  blockedUntil?: number;
+}
+
 @Injectable()
 export class CustomThrottlerGuard implements CanActivate {
   private readonly logger = new Logger(CustomThrottlerGuard.name);
-  // Simple in-memory storage
-  private readonly ipHitMap: Map<
-    string,
-    { hits: number; resetTime: number; blockedUntil?: number }
-  > = new Map();
+  private readonly ipHitMap: Map<string, ThrottleRecord> = new Map();
   private readonly limit: number;
   private readonly ttl: number;
   private readonly penaltyMs: number;
+  private cleanupInterval: NodeJS.Timeout;
 
   constructor(
     private readonly configService: ConfigService,
   ) {
-    this.limit = this.configService.get<number>('THROTTLE_LIMIT', 15);
+    this.limit = this.configService.get<number>('THROTTLE_LIMIT', 10);
     this.ttl = this.configService.get<number>('THROTTLE_TTL', 60000);
     this.penaltyMs = 10000; // Fixed 10 seconds penalty
     this.logger.log(`Rate limiter initialized with limit: ${this.limit}, ttl: ${this.ttl}ms`);
     
     // Run cleanup every 30 seconds
-    setInterval(() => this.cleanup(), 30000);
+    this.cleanupInterval = setInterval(() => this.cleanup(), 30000);
   }
- 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const ip = request.ip || 'anonymous';
-    this.logger.log(`Client IP: ${ip}`);
 
+  private getRecord(ip: string): { record: ThrottleRecord; isNew: boolean } {
     const now = Date.now();
     let record = this.ipHitMap.get(ip);
+    let isNew = false;
 
-    // If record exists but TTL has expired, reset the record
-    if (record && record.resetTime <= now) {
-        this.logger.log(`TTL expired for ${ip}, resetting count`);
-        record = undefined;
+    // Check if record exists and if the time window has expired
+    if (record) {
+      const windowExpired = (now - record.windowStart) >= this.ttl;
+      if (windowExpired) {
+        this.logger.log(`Time window expired for ${ip}, resetting count`);
         this.ipHitMap.delete(ip);
-    }
-
-    // Clear blocked records if block time has expired
-    if (record?.blockedUntil && record.blockedUntil < now) {
+        record = undefined;
+      } else if (record.blockedUntil && record.blockedUntil < now) {
         this.logger.log(`Block time expired for ${ip}, removing block`);
         this.ipHitMap.delete(ip);
         record = undefined;
+      }
     }
 
-    // If no record exists, create a new one
     if (!record) {
-        record = {
-            hits: 1,
-            resetTime: now + this.ttl,
-        };
-        this.ipHitMap.set(ip, record);
-        this.logger.log(`New record for ${ip}: 1/${this.limit}, expires at ${new Date(record.resetTime).toLocaleString()}`);
-        return true;
+      record = {
+        hits: 0,
+        windowStart: now,
+      };
+      isNew = true;
+      this.logger.log(`New rate limit window for ${ip}`);
     }
 
-    // Check if user is in penalty box
-    if (record.blockedUntil) {
+    return { record, isNew };
+  }
+ 
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    try {
+      const request = context.switchToHttp().getRequest();
+      const ip = request.ip || 'anonymous';
+      
+      const { record, isNew } = this.getRecord(ip);
+      const now = Date.now();
+
+      // Check if user is in penalty box
+      if (record.blockedUntil) {
         const remainingBlockMs = Math.ceil((record.blockedUntil - now) / 1000);
-        this.logger.warn(
-            `IP ${ip} is blocked for ${remainingBlockMs} more seconds`,
-        );
-        throw new ThrottlerException(
-            `Too many requests. Try again in ${remainingBlockMs} seconds.`,
-        );
-    }
+        if (remainingBlockMs > 0) {
+          this.logger.warn(`IP ${ip} is blocked for ${remainingBlockMs} seconds`);
+          throw new ThrottlerException(
+            `Too many requests. Try again in ${remainingBlockMs} seconds.`
+          );
+        }
+      }
 
-    // Increment hits
-    record.hits += 1;
-    this.logger.log(`Request count for ${ip}: ${record.hits}/${this.limit}, resets at ${new Date(record.resetTime).toLocaleString()}`);
+      // Increment hits
+      record.hits += 1;
 
-    // Check if limit is exceeded
-    if (record.hits > this.limit) {
+      // If new record or existing record, ensure it's in the map
+      this.ipHitMap.set(ip, record);
+
+      const timeUntilReset = Math.max(0, Math.ceil((this.ttl - (now - record.windowStart)) / 1000));
+      
+      this.logger.log(
+        `Request count for ${ip}: ${record.hits}/${this.limit}, ` +
+        `window resets in ${timeUntilReset} seconds`
+      );
+
+      // Check if limit is exceeded
+      if (record.hits > this.limit) {
         record.blockedUntil = now + this.penaltyMs;
+        const blockSeconds = Math.ceil(this.penaltyMs / 1000);
         this.logger.warn(
-            `Rate limit exceeded for ${ip}: ${record.hits}/${this.limit}. Blocked until: ${new Date(record.blockedUntil).toLocaleString()}`,
+          `Rate limit exceeded for ${ip}: ${record.hits}/${this.limit}. ` +
+          `Blocked for ${blockSeconds} seconds`
         );
         throw new ThrottlerException(
-            `Too many requests. Try again in ${this.penaltyMs / 1000} seconds.`,
+          `Too many requests. Try again in ${blockSeconds} seconds.`
         );
-    }
+      }
 
-    return true;
+      return true;
+    } catch (error) {
+      if (error instanceof ThrottlerException) {
+        throw error;
+      }
+      this.logger.error(`Error in throttler guard: ${error.message}`);
+      // On error, allow the request to prevent blocking legitimate traffic
+      return true;
+    }
   }
 
-  // Add cleanup method
   private cleanup() {
-    const now = Date.now();
-    let cleaned = 0;
-    for (const [ip, record] of this.ipHitMap.entries()) {
-        if ((record.resetTime <= now) || (record.blockedUntil && record.blockedUntil < now)) {
-            this.ipHitMap.delete(ip);
-            cleaned++;
+    try {
+      const now = Date.now();
+      let cleaned = 0;
+      
+      // Use for...of instead of entries() to prevent iterator allocation
+      for (const [ip, record] of this.ipHitMap) {
+        const windowExpired = (now - record.windowStart) >= this.ttl;
+        if (windowExpired || (record.blockedUntil && record.blockedUntil < now)) {
+          this.ipHitMap.delete(ip);
+          cleaned++;
         }
-    }
-    if (cleaned > 0) {
+      }
+
+      if (cleaned > 0) {
         this.logger.debug(`Cleaned up ${cleaned} expired records`);
+      }
+    } catch (error) {
+      this.logger.error(`Error in cleanup: ${error.message}`);
     }
   }
 }
