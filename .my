@@ -1,0 +1,13 @@
+
+107af40 feat(backend): add Swagger API tags for health check endpoint
+squash fc95a45 feat(backend): add debug logging for user authentication flow
+squash 4021eda refactor(backend): remove redundant POST decorator in TextAnalyzerController
+squash d63d913 refactor(backend): remove debug console logs across multiple modules
+squash 7b15155 docs: update project README with refined documentation and badges
+squash 0dcd274 chore(frontend): remove unused static assets
+squash 95af319 refactor(backend): improve CustomThrottlerGuard with enhanced rate limiting logic
+squash dd782f7 refactor(backend): remove CustomThrottlerGuard from CommonModule
+squash b3a770d refactor(backend): minor constructor formatting in CustomThrottlerGuard
+squash 76323f5 feat(backend): enhance direct authentication with optional profile picture
+squash f34e2b1 refactor(backend): reorganize auth module import order and dependencies
+pick b7bfd9a chore(backend): update docker-compose log volume configuration
